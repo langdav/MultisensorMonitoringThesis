@@ -20,8 +20,8 @@
     - [] load data with cloud cover of ~ 80%
     - [] get data for 2021
 
-- [] Story 2: Drone :alarm_clock: when processed
- - [] get data from *Nico*, as soon as its processed
+- [] Story 2: Drone :alarm_clock: *when processed*
+  - [] get data from *Nico*, as soon as its processed
   - [] Dense Point Clouds
   - [] Ortophoto
 
@@ -29,9 +29,9 @@
  - [] TreeSense Magnitude :alarm_clock: 25.06.2021
   - [] download data manually on [treesense.net](https://login.treesense.net/home/)
   - [] find out, what the impedance (resistance) tells us
- - [] Sapflow :alarm_clock: when available
- - [] Wood Water Content (VWWC) :alarm_clock: when available
- - [] Spectral Sensors :alarm_clock: when available
+ - [] Sapflow :alarm_clock: *when available*
+ - [] Wood Water Content (VWWC) :alarm_clock: *when available*
+ - [] Spectral Sensors :alarm_clock: *when available*
  
 - [] Story 4: PhenoCams :alarm_clock: 25.06.2021
  - [x] look for budbursts in the cams images
