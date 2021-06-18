@@ -4,7 +4,7 @@
 
 ## Epics
 
-#Epic 1: Collect data
+**Epic 1: Collect data**
 
 - [] Story 1: Satellite Remote Sensing (SRS) :alarm_clock: 25.06.2021
   - [] Landsat (30m), Sentinel-2 (10m)
@@ -39,7 +39,7 @@
   - [] search for sources of error; find potential improvement possibilities
   - [] add error/improvement notes to the PhenoCam repo
 
-#Epic 2: Paperwork
+**Epic 2: Paperwork**
  
 - [] Story 1: Comparison of own (planned) work with paper
   - [] read 'Assessing Forest Phenology: A Multi-Scale Comparison of Near-Surface (UAV, Spectral Reﬂectance Sensor, PhenoCam) and Satellite (MODIS, Sentinel-2) Remote Sensing' (Thapa et al. 2021)
@@ -53,7 +53,7 @@
       - validation via phenological observation
       - <del> PhenoCams </del>
 
-#Epic 3: Data Processing
+**Epic 3: Data Processing**
 
 - [] Story 1: Satellite Remote Sensing (SRS) data
   - [] NDVI
