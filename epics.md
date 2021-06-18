@@ -45,13 +45,13 @@
   - [] read 'Assessing Forest Phenology: A Multi-Scale Comparison of Near-Surface (UAV, Spectral Reﬂectance Sensor, PhenoCam) and Satellite (MODIS, Sentinel-2) Remote Sensing' (Thapa et al. 2021)
   - [] comparison
    - [] which methods did they use
-    - forest
-    - PhenoCams for In Situ data
+      - forest
+      - PhenoCams for In Situ data
    - [] which methods will I use
-    - single tree
-    - Sensors + manually taken Budburst times as In Situ data
-    - validation via phenological observation
-    - <del> PhenoCams </del>
+      - single tree
+      - Sensors + manually taken Budburst times as In Situ data
+      - validation via phenological observation
+      - <del> PhenoCams </del>
 
 #Epic 3: Data Processing
 
