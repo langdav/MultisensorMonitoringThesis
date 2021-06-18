@@ -26,18 +26,18 @@
   - [] Ortophoto
 
 - [] Story 3: TreeSensors
- - [] TreeSense Magnitude :alarm_clock: 25.06.2021
-  - [] download data manually on [treesense.net](https://login.treesense.net/home/)
-  - [] find out, what the impedance (resistance) tells us
+  - [] TreeSense Magnitude :alarm_clock: 25.06.2021
+    - [] download data manually on [treesense.net](https://login.treesense.net/home/)
+    - [] find out, what the impedance (resistance) tells us
  - [] Sapflow :alarm_clock: *when available*
  - [] Wood Water Content (VWWC) :alarm_clock: *when available*
  - [] Spectral Sensors :alarm_clock: *when available*
  
 - [] Story 4: PhenoCams :alarm_clock: 25.06.2021
- - [x] look for budbursts in the cams images
- - [] ask *Martin*, which cam was placed in which tree
- - [] search for sources of error; find potential improvement possibilities
- - [] add error/improvement notes to the PhenoCam repo
+  - [x] look for budbursts in the cams images
+  - [] ask *Martin*, which cam was placed in which tree
+  - [] search for sources of error; find potential improvement possibilities
+  - [] add error/improvement notes to the PhenoCam repo
 
 #Epic 2: Paperwork
  
