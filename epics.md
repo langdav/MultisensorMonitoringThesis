@@ -56,26 +56,26 @@
 #Epic 3: Data Processing
 
 - [] Story 1: Satellite Remote Sensing (SRS) data
- - [] NDVI
- - [] EVI (Enhanced Vegetation Index)
+  - [] NDVI
+  - [] EVI (Enhanced Vegetation Index)
 
 - [] Story 2: Drone data
- - Dense Point Clouds
-  - [] extract single trees
-  - [] quantify green pixels on per tree basis
+  - Dense Point Clouds
+    - [] extract single trees
+    - [] quantify green pixels on per tree basis
   
 - [] Story 3: Tree Senors
- - [] higher sapflow after sprouting? (hypothesis: bigger leaf area after sprouting leads to higher sapflow as respiration area is bigger)
+  - [] higher sapflow after sprouting? (hypothesis: bigger leaf area after sprouting leads to higher sapflow as respiration area is bigger)
  
 ## (Potential) Sources of errors
 
 - Satellite Remote Sensing
- - clouds (especially Planetscope)
- - data inavailability
- - resolution
+  - clouds (especially Planetscope)
+  - data inavailability
+  - resolution
  
 - Drone
- - lighting (distorted colours)
+  - lighting (distorted colours)
 
 ## Backlog:
 
