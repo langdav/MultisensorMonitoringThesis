@@ -7,18 +7,19 @@
 **Epic 1: Collect data**
 
 - [] Story 1: Satellite Remote Sensing (SRS) :alarm_clock: 25.06.2021
-  - [] Landsat (30m), Sentinel-2 (10m)
-    - [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data
-      - [] Tutorial "The Datacube"
-      - [] Tutorial "Coregistration"
-    - [] optional: use gpkg to get the extent of the Uniwald
-    - [] optional: get data from *Nico*
+  - [x] Landsat (30m), Sentinel-2 (10m)
+    - [x] optional: get data from *Nico*
+    - <del> [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data </del>
+      -  <del> [] Tutorial "The Datacube" </del>
+      - <del> [] Tutorial "Coregistration" </del>
+    - </del> [] optional: use gpkg to get the extent of the Uniwald </del>
   - [] Sentinel-1 [e.g. here](https://scihub.copernicus.eu/)
     - [] optional: get data from *Nico*
-  - [] Planetscope (3m)
-    - [] new account on [planet.com](https://www.planet.com/) (students account)
-    - [] load data with cloud cover of ~ 80%
-    - [] get data for 2021
+  - [x] Planetscope (3m)
+    - [x] optional: get data from *Nico*
+    - [x] new account on [planet.com](https://www.planet.com/) (students account)
+    - <del> [] load data with cloud cover of ~ 80% </del>
+    - <del> [] get data for 2021 </del>
 
 - [] Story 2: Drone :alarm_clock: *when processed*
   - [] get data from *Nico*, as soon as its processed
@@ -37,8 +38,8 @@
  
 - [] Story 4: PhenoCams :alarm_clock: 25.06.2021
   - [x] look for budbursts in the cams images
-  - [] ask *Martin*, which cam was placed in which tree
-  - [] search for sources of error; find potential improvement possibilities
+  - [x] ask *Martin*, which cam was placed in which tree
+  - [x] search for sources of error; find potential improvement possibilities
   - [] add error/improvement notes to the PhenoCam repo
 
 **Epic 2: Paperwork**
@@ -81,5 +82,8 @@
 
 ## Backlog:
 
+- [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data </del>
+    - [] Tutorial "The Datacube" </del>
+    - [] Tutorial "Coregistration"
 
 ## Troubleshooting:
