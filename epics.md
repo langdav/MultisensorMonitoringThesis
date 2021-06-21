@@ -14,6 +14,7 @@
       - <del> [] Tutorial "Coregistration" </del>
     - </del> [] optional: use gpkg to get the extent of the Uniwald </del>
   - [] Sentinel-1 [e.g. here](https://scihub.copernicus.eu/)
+    - downloaded via [Earthdata Search](https://search.earthdata.nasa.gov/search), using the 'mof.shp' files
     - [] optional: get data from *Nico*
   - [x] Planetscope (3m)
     - [x] optional: get data from *Nico*
