@@ -3,4 +3,6 @@
 *.las
 .Rproj.user
 .Renviron
+
 /data/drone_old
+/data/raw
