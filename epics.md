@@ -7,17 +7,18 @@
 **Epic 1: Collect data**
 
 - [] Story 1: Satellite Remote Sensing (SRS) :alarm_clock: 25.06.2021
-  - [x] Landsat (30m), Sentinel-2 (10m)
-    - [x] optional: get data from *Nico*
+  - [] Landsat (30m), Sentinel-2 (10m)
+    - [] optional: get data from *Nico*
     - <del> [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data </del>
       -  <del> [] Tutorial "The Datacube" </del>
       - <del> [] Tutorial "Coregistration" </del>
-    - </del> [] optional: use gpkg to get the extent of the Uniwald </del>
-  - [] Sentinel-1 [e.g. here](https://scihub.copernicus.eu/)
+    - <del> [] optional: use gpkg to get the extent of the Uniwald </del>
+  - [x] Sentinel-1 [e.g. here](https://scihub.copernicus.eu/)
     - downloaded via [Earthdata Search](https://search.earthdata.nasa.gov/search), using the 'mof.shp' files
+    - [x] clip to extent of MOF
+    - <del> [] optional: get data from *Nico* </del>
+  - [] Planetscope (3m)
     - [] optional: get data from *Nico*
-  - [x] Planetscope (3m)
-    - [x] optional: get data from *Nico*
     - [x] new account on [planet.com](https://www.planet.com/) (students account)
     - <del> [] load data with cloud cover of ~ 80% </del>
     - <del> [] get data for 2021 </del>
