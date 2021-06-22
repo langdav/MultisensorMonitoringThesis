@@ -48,15 +48,23 @@
  
 - [] Story 1: Comparison of own (planned) work with paper
   - [] read 'Assessing Forest Phenology: A Multi-Scale Comparison of Near-Surface (UAV, Spectral Reﬂectance Sensor, PhenoCam) and Satellite (MODIS, Sentinel-2) Remote Sensing' (Thapa et al. 2021)
-  - [] comparison
-   - [] which methods did they use
-      - forest
-      - PhenoCams for In Situ data
-   - [] which methods will I use
-      - single tree
-      - Sensors + manually taken Budburst times as In Situ data
-      - validation via phenological observation
-      - <del> PhenoCams </del>
+      - comparison
+          - which methods did they use
+              - Phenology of whole forest
+              - UAV (multispectral camera; green, red, red edge, near-infrared; orthoimages)
+              - Satellite Remote Sensing (MODIS, Sentinel-2)
+              - Spectral Reflectance Sensors
+              - PhenoCam for In Situ data; 1 Cam, facing south, mounted on a tower at height 7.25 m
+              - Normalized Difference Vegetation Index (NDVI), Green Chromatic Coordinate (GCC), Normalized Difference of Green & Red (VIgreen)
+          - which methods will I use
+              - Budburst on single tree level
+              - UAV (multispectral camera; ...; orthoimages; Denseclouds)
+              - LiDAR (if applicable; I'd like to use it)
+              - Satellite Remote Sensing (Landsat, Sentinel-1 & -2)
+              - PhenoCams (more or less): Budburst times determined manually
+              - TreeSense Sensors (Impedance, Sapflow, Wood Water Content)
+              - Other sensors (Spectral information, temperature, ...)
+              - Normalized Difference Vegetation Index (NDVI), Green Chromatic Coordinate (GCC), Enhanced Vegetation Index (EVI)
 
 **Epic 3: Data Processing**
 
