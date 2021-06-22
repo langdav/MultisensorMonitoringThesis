@@ -29,14 +29,14 @@
   - [] Ortophoto
 
 - [] Story 3: TreeSensors
-  - [] TreeSense Magnitude :alarm_clock: 25.06.2021
+  - [x] TreeSense Magnitude :alarm_clock: 25.06.2021
     - [x] download data manually on [treesense.net](https://login.treesense.net/home/) (downloaded: 21.06.2012, 10:00)
     - [x] tidy data (remove duplicate entries; replace "," with "." and convert temperature and magnitude to numeric)
     - [] find out, what the impedance tells us
         - The electrical impedance in the xylem part represents the tree's heart rate. It indicates the well-being of the tree and provides a large variety of insights. (Source: treesense.net); *very 'informative', thanks*
- - [] Sapflow :alarm_clock: *when available*
- - [] Wood Water Content (VWWC) :alarm_clock: *when available*
- - [] Spectral Sensors :alarm_clock: *when available*
+  - [] Sapflow :alarm_clock: *when available*
+  - [] Wood Water Content (VWWC) :alarm_clock: *when available*
+  - [] Spectral Sensors :alarm_clock: *when available*
  
 - [] Story 4: PhenoCams :alarm_clock: 25.06.2021
   - [x] look for budbursts in the cams images
