@@ -4,7 +4,7 @@
 
 ## Epics
 
-**Epic 1: Collect data**
+**Epic 1: Collecting data**
 
 - [] Story 1: Satellite Remote Sensing (SRS) :alarm_clock: 25.06.2021
   - [] Landsat (30m), Sentinel-2 (10m)
@@ -60,7 +60,7 @@
               - Budburst on single tree level
               - UAV (multispectral camera; ...; orthoimages; Denseclouds)
               - LiDAR (if applicable; I'd like to use it)
-              - Satellite Remote Sensing (Landsat, Sentinel-1 & -2)
+              - Satellite Remote Sensing (optical: Landsat (30m), Sentinel-2 (10m), Planetscope (3m); radar: Sentinel-1 (20m))
               - PhenoCams (more or less): Budburst times determined manually
               - TreeSense Sensors (Impedance, Sapflow, Wood Water Content)
               - Other sensors (Spectral information, temperature, ...)
@@ -79,6 +79,8 @@
   
 - [] Story 3: Tree Senors
   - [] higher sapflow after sprouting? (hypothesis: bigger leaf area after sprouting leads to higher sapflow as respiration area is bigger)
+  
+- [] Story 4: Processing Sentinel-1 data like it was done in Frison et al., 2018
  
 ## (Potential) Sources of errors
 
