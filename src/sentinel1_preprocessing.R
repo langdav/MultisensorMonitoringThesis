@@ -82,7 +82,7 @@ for(i in 1:length(product)){
 ## processing those files that needed to be downloaded manually (most of them, as most were already offline) ##
 ##############################################################################################################
 
-whats_there <- list.files("data/raw/Sentinel1_downloads/")
+whats_there <- list.files("data/raw/Sentinel1_downloads/", pattern = ".zip")
 
 for(i in 1:length(whats_there)){
   cat("Starting Scene ",i,"of", length(whats_there),"\n")
@@ -109,6 +109,12 @@ for(i in 1:length(whats_there)){
 #   Remove GRD Border Noise > Calibrate and generate Sigma VV and VH Bands > Apply Speckle Filter (Lee Sigma)
 #   Terrain Correction > Linear to Log transform > Write out Tiff
 # Afterwards the scene is removed from harddrive and subsequent calculations can be done with the subset
+########
+## if orbit files are offline or not reachable, download them manually (https://scihub.copernicus.eu/gnss/#/home) and put them into 
+## '.snap\auxdata\Orbits\Sentinel-1\POEORB'; the folder structure must be like described here: https://forum.step.esa.int/t/s1-radar-apply-orbit-file-not-responding/14437/2
+########
+## if srtm_03_02 can't be reached; download it manually and move it to .snap/auxdata/dem/SRTM 3Sec/
+
 input_path <- "data/satellite_data/sentinel1/sentinel1_inp/"
 sen1_scenes <- dir("data/satellite_data/sentinel1/sentinel1_inp/")[grepl(".dim",dir("data/satellite_data/sentinel1/sentinel1_inp/"))]
 for(i in 1:length(sen1_scenes)){
