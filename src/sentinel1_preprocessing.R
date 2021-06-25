@@ -38,7 +38,7 @@ footprint <- sf:::prnt.POLYGON(mof$geom[[1]])
 
 # Sentinel 1 ####
 ## Query for available sentinel 1 scenes ####
-product = api$query(area = footprint, date = c("20210512", "20210515"),
+product = api$query(area = footprint, date = c("20210301","20210531"),
                     platformname = "Sentinel-1", producttype="GRD")
 save(product,file="data/satellite_data/sentinel1/products_sentinel1.RData")
 
@@ -147,7 +147,7 @@ for(i in 1:length(sen1_scenes)){
 # The procedure for sentinel 2 is basically the same as for sentinel 1
 
 ## Query for available sentinel 2 scenes ####
-product1 = api$query(area = footprint, date = c("20200101","20201023"),
+product1 = api$query(area = footprint, date = c("20210301","20210531"),
                     producttype = "S2MSI2A", cloudcoverpercentage = c(0,60))
 product = api$query(area = footprint, date = c("20200101","20201023"),
                     producttype = "S2MSI2A", cloudcoverpercentage = c(0,90))
