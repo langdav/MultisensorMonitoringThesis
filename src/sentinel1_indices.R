@@ -12,12 +12,14 @@ library(sf);library(raster);library(RStoolbox);library(mapview)
 library(glcm);library(parallel)
 # input data ####
 
-load("data/spatial/trees.RData")
-load("data/satellite_data/products_sentinel1.RData")
+#load("data/spatial/trees.RData")
+trees <- readRDS("data/trees.RDS")
+colnames(trees)[1] <- "tree_id"
+load("data/satellite_data/sentinel1/products_sentinel1.RData")
 
 # Index calculations ####
 
-dirs <- dir("data/satellite_data/sen_out/",full.names = T)
+dirs <- dir("data/satellite_data/sentinel1/sentinel1_out/",pattern = ".tif" ,full.names = T)
 dirs <- split(dirs, as.factor(unlist(lapply(strsplit(basename(dirs),"_"), function(x) x[5]))))
 results <- as.list(rep(NA,length(dirs)))
 metadata <- unlist(lapply(product, function(x) unlist(strsplit(x$filename,"_"))[5]))
@@ -72,11 +74,11 @@ results <- mclapply(as.list(1:length(dirs)), function(i){
   
   attributes(ind_stack)$meta <- meta
   list(dat,ind_stack)
-},mc.cores = 50)
+},mc.cores = 1)
 
 attributes(results[[10]][[1]])
 sen1_res <- do.call("rbind", lapply(results,function(x) x[[1]]))
 saveRDS(sen1_res, file="data/satellite_data/satellite_indices/sentinel1_indices.RDS")
-saveRDS(results, file="data/results/prediction/sentinel1_predictors.RDS")
+saveRDS(results, file="data/satellite_data/satellite_results/prediction/sentinel1_predictors.RDS")
 
 
