@@ -1,0 +1,6 @@
+A (0) : Buds, dormant, winter aspect
+B (1): Buds swell and get round
+C (2): Buds have swollen and have burst
+D (3): Buds have burst, leaves are coiled
+E (4): Light foliage
+F (5): Full foliage
