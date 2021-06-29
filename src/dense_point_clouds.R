@@ -16,7 +16,8 @@ library(RSDB)
 
 las_all <- readLAS("data/drone_old/2020_05_26_densecloud.las")
 proj4string(las_all) <- CRS("+init=epsg:25832")
-plot(las_all)
+#plot(las_all)
+plot(las_all, backend = "lidRviewer") 
 
   
 trees <- readRDS("data/trees.RDS")
