@@ -32,8 +32,7 @@ as.character(sen1_results$date[which(sen1_results$tree_id == unique(sen1_results
 ############################################################################
 ## create ggplots; timeseries of Sentinel1 results; per tree comparisons ##
 ##########################################################################
-library(ggplot2)
-library(viridis)
+library(ggplot2);library(viridis);library(dplyr)
 
 sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
 sen1_results$date <- as.Date(sen1_results$date)
@@ -122,9 +121,11 @@ budburst %>%
   facet_grid(Tree_ID ~ ., scales = "free_y") +
   scale_x_date(date_breaks = "1 week") +
   ylim("0% budburst","<50% budburst",">50% budburst","<100% foliage") +
+  ylab("Budburst Phases") +
+  labs(color = "Tree ID") +
   scale_color_viridis(discrete = T)
 
-
+ggsave(paste0("out/budburst_phases.png"), last_plot(), height = 10, width = 15)
 
 ############################################################################################
 ## per sentinel1-product plots; comparison of all 5 trees; budburst phases as background ##
