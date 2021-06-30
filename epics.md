@@ -6,7 +6,7 @@
 
 **Epic 1: Collecting data**
 
-- [] Story 1: Satellite Remote Sensing (SRS) :alarm_clock: 25.06.2021
+- [] Story 1: Satellite Remote Sensing (SRS)
   - [] Landsat (30m), Sentinel-2 (10m)
     - [] optional: get data from *Nico*
     - <del> [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data </del>
@@ -16,6 +16,7 @@
   - [x] Sentinel-1 [e.g. here](https://scihub.copernicus.eu/)
     - downloaded via [Earthdata Search](https://search.earthdata.nasa.gov/search), using the 'mof.shp' files
     - [x] clip to extent of MOF
+    - [x] preprocessing
     - <del> [] optional: get data from *Nico* </del>
   - [] Planetscope (3m)
     - [] optional: get data from *Nico*
@@ -38,16 +39,18 @@
   - [] Wood Water Content (VWWC) :alarm_clock: *when available*
   - [] Spectral Sensors :alarm_clock: *when available*
  
-- [] Story 4: PhenoCams :alarm_clock: 25.06.2021
+- [] Story 4: PhenoCams
   - [x] look for budbursts in the cams images
   - [x] ask *Martin*, which cam was placed in which tree
   - [x] search for sources of error; find potential improvement possibilities
   - [] add error/improvement notes to the PhenoCam repo
+  
+- [] Story 5: Budburst phases
 
 **Epic 2: Paperwork**
  
-- [] Story 1: Comparison of own (planned) work with paper
-  - [] read 'Assessing Forest Phenology: A Multi-Scale Comparison of Near-Surface (UAV, Spectral Reﬂectance Sensor, PhenoCam) and Satellite (MODIS, Sentinel-2) Remote Sensing' (Thapa et al. 2021)
+- [x] Story 1: Comparison of own (planned) work with paper
+  - [x] read 'Assessing Forest Phenology: A Multi-Scale Comparison of Near-Surface (UAV, Spectral Reﬂectance Sensor, PhenoCam) and Satellite (MODIS, Sentinel-2) Remote Sensing' (Thapa et al. 2021)
       - comparison
           - which methods did they use
               - Phenology of whole forest
@@ -80,7 +83,13 @@
 - [] Story 3: Tree Senors
   - [] higher sapflow after sprouting? (hypothesis: bigger leaf area after sprouting leads to higher sapflow as respiration area is bigger)
   
-- [] Story 4: Processing Sentinel-1 data like it was done in Frison et al., 2018
+- <del> [] Story 4: Processing Sentinel-1 data like it was done in Frison et al., 2018 </del>
+
+- [] Story 5: Processing Sentinel-1 data
+  - [x] derive various Sentinel-1 products
+  - [x] create plots for visual comparison
+      - comparison plots of all 5 trees per Sentinel-1 product
+      - inclusion of budburst phases
  
 ## (Potential) Sources of errors
 
