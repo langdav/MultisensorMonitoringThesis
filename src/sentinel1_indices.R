@@ -16,6 +16,8 @@ library(glcm);library(parallel)
 trees <- readRDS("data/trees.RDS")
 colnames(trees)[1] <- "tree_id"
 load("data/satellite_data/sentinel1/products_sentinel1.RData")
+#product[[44]] <- NULL #remove "S1A_IW_GRDH_1SDV_20210331T053413_20210331T053438_037238_0462D6_76C3", as no orbit file available
+#product[[23]] <- NULL #remove ""S1B_IW_GRDH_1SDV_20210430T053317_20210430T053342_026692_033029_0BB4", as no orbit file available
 
 # Index calculations ####
 
@@ -81,4 +83,5 @@ sen1_res <- do.call("rbind", lapply(results,function(x) x[[1]]))
 saveRDS(sen1_res, file="data/satellite_data/satellite_indices/sentinel1_indices.RDS")
 saveRDS(results, file="data/satellite_data/satellite_results/prediction/sentinel1_predictors.RDS")
 
-
+sen1_res_old <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices_old.RDS")
+results_old <- readRDS("data/satellite_data/satellite_results/prediction/sentinel1_predictors_old.RDS")
