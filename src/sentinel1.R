@@ -129,7 +129,7 @@ budburst %>%
 ############################################################################################
 ## per sentinel1-product plots; comparison of all 5 trees; budburst phases as background ##
 ##########################################################################################
-library(dplyr);library(ggplot2);library(viridis);library(tidyr);library(RColorBrewer)
+library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
 sen1_results$date <- as.Date(sen1_results$date)
 
@@ -141,12 +141,14 @@ budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tr
 # Classification for ggplots: 0% budburst, <50% budburst , <50% budburst, 100% foliage
 budburst$budburst_phase <- NA
 for(i in 1:nrow(budburst)){
-  if(budburst$Phase.A[i] == 100) budburst$budburst_phase[i] <- 1 #0% budburst
-  if(budburst$Phase.A[i] < 100 & budburst$Phase.A[i] > 50) budburst$budburst_phase[i] <- 2 #<50% budburst
-  if(budburst$Phase.A[i] <= 50) budburst$budburst_phase[i] <- 3 #<50% budburst
-  if(budburst$Phase.F[i] == 100) budburst$budburst_phase[i] <- 4 #100% foliage
+  if(budburst$Phase.A[i] == 100) budburst$budburst_phase[i] <- "0% budburst"
+  if(budburst$Phase.A[i] < 100 & budburst$Phase.A[i] > 50) budburst$budburst_phase[i] <-  "<50% budburst"
+  if(budburst$Phase.A[i] <= 50) budburst$budburst_phase[i] <-  ">50% budburst"
+  if(budburst$Phase.F[i] == 100) budburst$budburst_phase[i] <-  "100% foliage"
 }
+budburst$budburst_phase <- factor(budburst$budburst_phase, levels = c("0% budburst","<50% budburst",">50% budburst","100% foliage"))
 budburst <- budburst[,c("Date", "Tree_ID", "budburst_phase")]
+
 
 ## observations were made in irregular intervals; fill days between observations with the values of the last observation, so that there is a value for every day of sentinel data
 for(i in as.character(unique(sen1_results$tree_id))){
@@ -174,49 +176,27 @@ for(i in unique(sen1_results$tree_id)){
   sen1_results$budtime[which(sen1_results$date == tail(sen1_results[which(sen1_results$tree_id == i),"date"],1))] <- tail(sen1_results[which(sen1_results$tree_id == i),"date"],1)
 }
 
-## create colors for rects
-sen1_results$color <- NA
-sen1_results$color[which(is.na(sen1_results$budburst_phase))] <-"transparent"
-sen1_results$color[which(sen1_results$budburst_phase == 1)] <- "blue"
-sen1_results$color[which(sen1_results$budburst_phase == 2)] <- "yellow"
-sen1_results$color[which(sen1_results$budburst_phase == 3)] <- "green"
-sen1_results$color[which(sen1_results$budburst_phase == 4)] <- "red"
-
-## ggplot
-sen1_results %>%
-  ggplot(aes(x=date, y=sen1_results[,7], group=tree_id, color=tree_id)) +
-  geom_rect( aes(xmin=date, xmax=budtime, ymin = min(sen1_results[,7]), ymax=max(sen1_results[,7]), fill = color), color = NA, alpha=0.4) +
-  geom_line(size = 1) +
-  facet_grid(tree_id~., scales = "free_y") +
-  scale_color_viridis(discrete = T) + 
-  theme_light() +
-  xlab("Date") +
-  ylab(names(sen1_results)[7]) +
-  scale_fill_manual(name="Budburst Phases", values = c("#FFFFCC","#78C679","#238443","transparent","#C2E699"),
-                      labels=c("0% budburst", ">50% budburst", "100% foliage", "no budburst data available", "<50% budburst"),
-                      guide = guide_legend(override.aes = list(linetype = c(1, 1, 1, 1, 2)))) +
-  labs(color = "Tree ID")
-
 ## for-loop to create plots for all sentinel1 products
 for(i in 5:40){
   out <- sen1_results %>%
     ggplot(aes(x=date, y=sen1_results[,i], group=tree_id, color=tree_id)) +
-    geom_rect( aes(xmin=date, xmax=budtime, ymin = min(sen1_results[,i]), ymax=max(sen1_results[,i]), fill = color), color = NA, alpha=0.4) +
+    geom_rect( aes(xmin=date, xmax=budtime, ymin = min(sen1_results[,i]), ymax=max(sen1_results[,i]), fill = budburst_phase), color = NA, alpha=0.5) +
+    scale_fill_brewer(palette="Greys") + #Greys = RColorBrewer Code; alternative (good) colorspaces: YlGn, Greens
     geom_line(size = 1) +
     facet_grid(tree_id~., scales = "free_y") +
     scale_color_viridis(discrete = T) + 
     theme_light() +
     xlab("Date") +
     ylab(names(sen1_results)[i]) +
-    scale_fill_manual(name="Budburst Phases", values = c("#FFFFCC","#78C679","#238443","transparent","#C2E699"),
-                      labels=c("0% budburst", ">50% budburst", "100% foliage", "no budburst data available", "<50% budburst"),
-                      guide = guide_legend(override.aes = list(linetype = c(1, 1, 1, 1, 2)))) +
+    labs(fill = "Budburst Phase") +
     labs(color = "Tree ID")
   ggsave(paste0("out/sentinel1/sen1_products/",names(sen1_results)[i], ".png"), out, height = 15, width = 10)
 }
 
+
+
 #######################
-## highlight budburst days as red dots on each line
+## Misc: highlight budburst days as red dots on each line
 #######################
 highlight_max <- sen1_results %>% 
   filter(date %in% as.Date(c("2021-05-06","2021-04-17")))
