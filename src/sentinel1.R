@@ -1,36 +1,5 @@
-library(sf);library(raster)
-
-sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
-sen1_pred <- readRDS("data/satellite_data/satellite_results/prediction/sentinel1_predictors.RDS")
-
-plot(sen1_pred[[1]][[2]]$gamma_vv)
-
-hist(sen1_results$gamma_vv)
-hist(sen1_results$gamma_vh)
-
-boxplot(sen1_results$gamma_vv)
-
-
-tree1 <- sen1_results[which(sen1_results$tree_id == unique(sen1_results$tree_id)[1]),]
-tree1_ts <- ts(tree1[,c(5:39)])
-plot(x = as.Date(tree1$date), y = tree1_ts[,1], type = "l")
-
-tree2 <- sen1_results[which(sen1_results$tree_id == unique(sen1_results$tree_id)[2]),]
-tree2_ts <- ts(tree2[,c(5:39)])
-plot(x = as.Date(tree2$date), y = tree2_ts[,1], type = "l")
-
-par(mfrow=c(3, 2))
-for(i in 1:length(unique(sen1_results$tree_id))){
-  tree <- sen1_results[which(sen1_results$tree_id == unique(sen1_results$tree_id)[i]),]
-  tree_ts <- ts(tree[,c(5:39)])
-  plot(x = as.Date(tree$date), y = tree_ts[,1], type = "l")
-}
-
-as.character(sen1_results$date[which(sen1_results$tree_id == unique(sen1_results$tree_id)[1])])
-
-
 ############################################################################
-## create ggplots; timeseries of Sentinel1 results; per tree comparisons ##
+## create ggplots; timeseries of Sentinel1 indices; per tree comparisons ##
 ##########################################################################
 library(ggplot2);library(viridis);library(dplyr)
 
@@ -50,7 +19,7 @@ for(i in results){
 
 
 ###########################################################################################
-## create ggplots; per tree timeseries of Sentinel1 products + time periods of budburst ##
+## create ggplots; per tree timeseries of Sentinel1 indices + time periods of budburst ##
 #########################################################################################
 library(dplyr);library(sf);library(raster)
 
@@ -72,7 +41,7 @@ for(i in 1:nrow(budburst)){
   if(budburst$Phase.F[i] == 100) budburst$class[i] <- 4 #100% foliage
 }
 
-## create ggplots for every tree and every product
+## create ggplots for every tree and every indices
 for(i in as.character(unique(sen1_results$tree_id))){
   
   single_tree <- budburst %>% filter(Tree_ID %in% i)
@@ -128,7 +97,7 @@ budburst %>%
 ggsave(paste0("out/budburst_phases.png"), last_plot(), height = 10, width = 15)
 
 ############################################################################################
-## per sentinel1-product plots; comparison of all 5 trees; budburst phases as background ##
+## per sentinel1-indices plots; comparison of all 5 trees; budburst phases as background ##
 ##########################################################################################
 library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
@@ -177,7 +146,7 @@ for(i in unique(sen1_results$tree_id)){
   sen1_results$budtime[which(sen1_results$date == tail(sen1_results[which(sen1_results$tree_id == i),"date"],1))] <- tail(sen1_results[which(sen1_results$tree_id == i),"date"],1)
 }
 
-## for-loop to create plots for all sentinel1 products
+## for-loop to create plots for all sentinel1 indices
 for(i in 5:40){
   out <- sen1_results %>%
     ggplot(aes(x=date, y=sen1_results[,i], group=tree_id, color=tree_id)) +
@@ -191,7 +160,7 @@ for(i in 5:40){
     ylab(names(sen1_results)[i]) +
     labs(fill = "Budburst Phase") +
     labs(color = "Tree ID")
-  ggsave(paste0("out/sentinel1/sen1_products/",names(sen1_results)[i], ".png"), out, height = 15, width = 10)
+  ggsave(paste0("out/sentinel1/sen1_indices/",names(sen1_results)[i], ".png"), out, height = 15, width = 10)
 }
 
 
