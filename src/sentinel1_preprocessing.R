@@ -38,7 +38,7 @@ footprint <- sf:::prnt.POLYGON(mof$geom[[1]])
 
 # Sentinel 1 ####
 ## Query for available sentinel 1 scenes ####
-product = api$query(area = footprint, date = c("20210515","20210531"),
+product = api$query(area = footprint, date = c("20210315","20210531"),
                     platformname = "Sentinel-1", producttype="GRD")
 save(product,file="data/satellite_data/sentinel1/products_sentinel1.RData")
 
