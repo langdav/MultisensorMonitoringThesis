@@ -86,9 +86,9 @@
 - <del> [] Story 4: Processing Sentinel-1 data like it was done in Frison et al., 2018 </del>
 
 - [] Story 5: Processing Sentinel-1 data
-  - [x] derive various Sentinel-1 products
+  - [x] derive various Sentinel-1 indices
   - [x] create plots for visual comparison
-      - comparison plots of all 5 trees per Sentinel-1 product
+      - comparison plots of all 5 trees per Sentinel-1 indice
       - inclusion of budburst phases
  
 ## (Potential) Sources of errors
