@@ -83,5 +83,3 @@ sen1_res <- do.call("rbind", lapply(results,function(x) x[[1]]))
 saveRDS(sen1_res, file="data/satellite_data/satellite_indices/sentinel1_indices.RDS")
 saveRDS(results, file="data/satellite_data/satellite_results/prediction/sentinel1_predictors.RDS")
 
-sen1_res_old <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices_old.RDS")
-results_old <- readRDS("data/satellite_data/satellite_results/prediction/sentinel1_predictors_old.RDS")
