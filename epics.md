@@ -27,7 +27,7 @@
 - [] Story 2: Drone :alarm_clock: *when processed*
   - [] get data from *Nico*, as soon as its processed
   - [] Dense Point Clouds
-  - [] Ortophoto
+  - [] Orthophoto
 
 - [] Story 3: TreeSensors
   - [x] TreeSense Magnitude :alarm_clock: 25.06.2021
