@@ -1,0 +1,16 @@
+Tree,Sensor,Sensor-ID,Sensor Height  [m],Branch diameter at sensor position [cm],Diameter at branch basis [cm],Distance Sensor-Stem [m],Distance Sensor-last bud of branch [m],Height level,Direction,Kamera
+BSF1,5,00A10B7FF5567333,29,"4,2",7,"0,3","2,5",high,central,103
+BSF1,4,00B1EB6CEE5D5058,20,2,"17,5","2,62","1,1",middle,N,102
+BSF1,1,00506275AD4F8D77,"20,5","6,4","34,7","3,52","2,2",middle,SW,105
+BSF1,3,00BBB6AE9257C235,"20,5","4,2","4,5","0,15",3,middle,central,101
+BSF1,2,009E7ABCFF72F063,"14,4","3,2","25,8","0,5","1,8",low,central,104
+CST0001,6,00674D95ACAE93D9,28,"2,9","3,2","0,3","1,5",high,central,109
+CST0001,7,00590218CCD02EE8,"17,8",5,"7,3","2,5","2,5",middle,SO,107
+CST0001,9,00B103F88C764C42,"18,5",29,29,0,"12,5",middle,central,108
+CST0001,10,00ED33838BC7C26E,"15,5","4,2","9,9","2,6","2,5",middle,N,110
+CST0001,8,0093810E0ED95CC1,"2,5","4,8","5,7","0,1",2,low,central,106
+CST0050,12,0033A57C3C63AF6A,"25,4","3,2","5,7","0,5",2,high,central,1
+CST0050,15,00A7D69DEA76D19C,"15,3","4,8","5,7","2,7","2,5",middle,SW,2
+CST0050,14,009381E0E0ED9CC1,"13,1","8,9","13,1","3,1","3,8",middle,N,3
+CST0050,13,002DB7FBEA402D7D,"15,3","17,3","20,7","0,6","13,8",middle,central,111
+CST0050,11,0035857C862CF651,10,"12,5","12,7","0,3",NA,low,central,4
