@@ -18,8 +18,8 @@
     - [x] clip to extent of MOF
     - [x] preprocessing
     - <del> [] optional: get data from *Nico* </del>
-  - [] Planetscope (3m)
-    - [] optional: get data from *Nico*
+  - [] Planetscope (3.7m an nadir)
+    - [x] optional: get data from *Nico*
     - [x] new account on [planet.com](https://www.planet.com/) (students account)
     - <del> [] load data with cloud cover of ~ 80% </del>
     - <del> [] get data for 2021 </del>
