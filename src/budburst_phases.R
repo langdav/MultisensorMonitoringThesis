@@ -4,32 +4,43 @@ sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices
 sen1_results$date <- as.Date(sen1_results$date)
 
 budburst <- read.csv2("data/data_spring_phenology_mof_21.csv")
-budburst$Date <- as.Date(budburst$Date, format = "%d.%m.%Y")
+budburst$date <- as.Date(budburst$Date, format = "%d.%m.%Y")
 budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tree_id)))
 # A - Buds, dormant, winter aspect; B - Buds swell and get round; C -  Buds have swollen and have burst, D - Buds have burst, leaves are coiled, E - Light foliage, F - Full foliage
-# Budburst: C, D 
+# budburst: D, E, F
 # Classification for ggplots: 0% budburst, <50% budburst , <50% budburst, 100% foliage
-budburst$budburst_phase <- NA
+budburst$phenoclass <- NA
+budburst$phenoclass_perc <- NA
+
 for(i in 1:nrow(budburst)){
-  if(budburst$Phase.A[i] == 100) budburst$budburst_phase[i] <- "0% budburst"
-  if(budburst$Phase.A[i] < 100 & budburst$Phase.A[i] > 50) budburst$budburst_phase[i] <-  "<50% budburst"
-  if(budburst$Phase.A[i] <= 50) budburst$budburst_phase[i] <-  ">50% budburst"
-  if(budburst$Phase.F[i] == 100) budburst$budburst_phase[i] <-  "100% foliage"
+  if(budburst$Phase.D[i] > 0 || budburst$Phase.E[i] > 0 || budburst$Phase.F[i] > 0){
+    budburst$phenoclass[i] <- "budburst"
+    budburst$phenoclass_perc[i] <- sum(budburst[i, c(6:8)])
+  } else {
+    budburst$phenoclass[i] <- "no_budburst"
+    budburst$phenoclass_perc[i] <- sum(budburst[i, c(3:5)])
+  }
 }
-budburst$budburst_phase <- factor(budburst$budburst_phase, levels = c("0% budburst","<50% budburst",">50% budburst","100% foliage"))
-budburst <- budburst[,c("Date", "Tree_ID", "budburst_phase")]
+
+budburst$budburst_phase <- factor(budburst$phenoclass, levels = c("no_budburst","budburst"))
+budburst <- budburst[,c("date", "Tree_ID", "phenoclass", "phenoclass_perc")]
 
 ## observations were made in irregular intervals; fill days between observations with the values of the last observation, so that there is a value for every day of sentinel data
 for(i in as.character(unique(sen1_results$tree_id))){
   if(!exists("budburst_filled")){
     budburst_filled <- budburst %>%
       filter(Tree_ID %in% i) %>% 
-      complete(Date = seq.Date(min(Date), max(Date), by="day")) %>%
-      fill("budburst_phase", "Tree_ID")
+      complete(date = seq.Date(min(date), max(date), by="day")) %>%
+      fill("phenoclass", "phenoclass_perc", "Tree_ID")
   } else {
     budburst_filled <- rbind(budburst_filled,budburst %>%
                                filter(Tree_ID %in% i) %>% 
-                               complete(Date = seq.Date(min(Date), max(Date), by="day")) %>%
-                               fill("budburst_phase", "Tree_ID"))
+                               complete(date = seq.Date(min(date), max(date), by="day")) %>%
+                               fill("phenoclass", "phenoclass_perc", "Tree_ID"))
   }
 }
+
+budburst_filled <- budburst_filled[,c("Tree_ID","date","phenoclass","phenoclass_perc")]
+colnames(budburst_filled)[1] <- "tree_id"
+
+write.csv(budburst_filled, "data/budburst_data/budburst_long.csv", row.names = F)
