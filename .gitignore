@@ -8,5 +8,6 @@
 /data/raw
 /data/satellite_data/sentinel1
 /data/satellite_data/satellite_results
+/data/satellite_data/planetscope
 /data/SRS
 /tmp
