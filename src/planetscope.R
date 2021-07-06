@@ -108,6 +108,7 @@ for(tree in unique(ndvi_long$tree_id)){
   out <- ndvi_sum %>% filter(tree_id %in% tree) %>% 
     ggplot(aes(x=date, y=values, group=date, color=as.factor(budburst_perc))) +
     geom_point(size = 3)+
+    geom_line() +
     geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
     scale_color_manual(values= cbPalette) +
     scale_x_date(date_breaks = "1 week") +
@@ -122,6 +123,7 @@ for(tree in unique(ndvi_long$tree_id)){
 out <- ndvi_sum %>% 
   ggplot(aes(x=date, y=values, group=tree_id, color=as.factor(budburst_perc))) +
   geom_point(size = 3)+
+  geom_line() +
   geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
   facet_grid(tree_id~., scales = "free_y") +
   scale_color_manual(values= cbPalette) +
