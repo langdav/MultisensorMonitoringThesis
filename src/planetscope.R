@@ -1,21 +1,76 @@
 library(dplyr);library(ggplot2);library(viridis);library(tidyr)
-library(raster);library(rgeos);library(rgdal)
+library(raster);library(rgeos);library(rgdal);library(lidR)
 
-## read in budburst data
-budburst <- read.csv("data/budburst_data/budburst_long.csv")
-budburst$date <- as.Date(budburst$date)
-budburst$phenoclass <- factor(budburst$phenoclass, levels = c("no_budburst","budburst"))
+## load data
+# phenoclasses
+phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
+phenoclasses$date <- as.Date(phenoclasses$date)
 
-## NDVI from planetscope data 
-# turn off factors
-options(stringsAsFactors = FALSE)
+# trees
+trees <- readRDS("data/trees.RDS")
 
-# import the planetscope data
-# 1 - Blue, 2 - Green, 3 - Red, 4 - NIR
-ps_data_st <- stack("data/satellite_data/planetscope/20210307_102818_56_2416_3B_AnalyticMS_SR_clip.tif")
+## create colorblind friendle palette
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-# NDVI = (B4-B3)/(B4+B3)
-ndvi <- (ps_data_st[[4]] - ps_data_st[[3]])/(ps_data_st[[4]] + ps_data_st[[3]])
-plot(ndvi)
+## NDVI for all planetscope files; create raster stack
+files_planetscope <- list.files("data/satellite_data/planetscope/",pattern = "SR_clip.tif")
+for(i in files_planetscope){
+  tmp_stack <- stack(paste0("data/satellite_data/planetscope/", i)) #import data
+  #ndvi <- (tmp_stack[[4]] - tmp_stack[[3]])/(tmp_stack[[4]] + tmp_stack[[3]]) NDVI = (nir-red)/(nir+red)
+  ndvi <- RStoolbox::spectralIndices(tmp_stack, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+  names(ndvi) <- i #rename layer
+  if(!exists("ndvi_st")){
+    ndvi_st <- ndvi
+  } else {
+    ndvi_st <- stack(ndvi_st, ndvi) #stack layers
+  }
+}
+rm(ndvi);rm(tmp_stack);rm(i);rm(files_planetscope)
 
+## crop raster stack to single trees and create long format dataframe 
+dates <- unique(substr(names(ndvi_st),2,9)) #dates of planetscope images
+
+ndvi_long <- data.frame(tree_id = NULL, date = NULL, values = NULL)
+for(tree in as.character(unique(trees$id))){
+  las1 <- readLAS(paste0("C:/Users/hhans/Documents/lidar_crowns/data/trees/",tree,".las"))
+  las_shp <- lidR::as.spatial(las1)
+  ndvi_st_crop <- crop(ndvi_st, las_shp)
+  for(date in dates){
+    for(i in which(substr(names(ndvi_st_crop), 2, 9) == date)){
+      values <- ndvi_st_crop[[i]]@data@values
+      ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(tree, length(values)),
+                                                 date=rep(as.Date(date, format="%Y%m%d"), length(values)),
+                                                 values = values))
+    }
+  }
+  
+}
+rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
+ndvi_long <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F) #merge with phenoclasses
+
+## ggplot - single tree
+
+tree <- unique(ndvi_long$tree_id)[2]
+ndvi_long %>% 
+  filter(tree_id %in% tree) %>% 
+  ggplot(aes(x=date, y=values, group=date, fill=as.factor(budburst_perc))) +
+  geom_boxplot() +
+  scale_fill_manual(values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(fill="buds bursted (in %)") +
+  theme_light()
+  
+## ggplot - all trees
+ndvi_long %>% 
+  ggplot(aes(x=date, y=values, group=tree_id, fill=as.factor(budburst_perc))) +
+  geom_boxplot(aes(group=date)) +
+  facet_grid(tree_id~., scales = "free_y") +
+  scale_fill_manual(values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(fill="buds bursted (in %)") +
+  theme_light()
 
