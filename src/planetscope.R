@@ -51,10 +51,10 @@ for(tree in as.character(unique(trees$id))){
 rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
 ndvi_long <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F) #merge with phenoclasses
 
-################################################################
-## create ggplots; timeseries of NDVI; grouped by phenophase ##
-##############################################################
-## ggplot - single tree
+#################################################################
+## create boxplots; timeseries of NDVI; grouped by phenophase ##
+###############################################################
+## boxplots - single tree
 for(tree in unique(ndvi_long$tree_id)){
   out <- ndvi_long %>% filter(tree_id %in% tree) %>% 
     ggplot(aes(x=date, y=values, group=date, fill=as.factor(budburst_perc))) +
@@ -65,11 +65,11 @@ for(tree in unique(ndvi_long$tree_id)){
     ylab("NDVI") +
     labs(fill="buds bursted (in %)") +
     theme_light()
-  ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi.png"), out, height = 10, width = 15)
+  ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi_boxplot.png"), out, height = 10, width = 15)
 }
 
   
-## ggplot - all trees
+## boxplots - all trees
 out <- ndvi_long %>% 
   ggplot(aes(x=date, y=values, group=tree_id, fill=as.factor(budburst_perc))) +
   geom_boxplot(aes(group=date)) +
@@ -80,4 +80,54 @@ out <- ndvi_long %>%
   ylab("NDVI") +
   labs(fill="buds bursted (in %)") +
   theme_light()
-ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi.png"), out, height = 10, width = 15)
+ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi_boxplot.png"), out, height = 10, width = 15)
+
+
+#################################################################
+## create plots; timeseries of NDVI; grouped by phenophase ##
+###############################################################
+## summarize data to tree, phenophase and date and calculate standard deviation
+# function found here: http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+  return(data_sum)
+}
+
+ndvi_sum <- data_summary(ndvi_long, varname="values", 
+                    groupnames=c("tree_id", "date", "budburst", "budburst_perc"))
+
+## ggplots points errorbars - single trees
+for(tree in unique(ndvi_long$tree_id)){
+  out <- ndvi_sum %>% filter(tree_id %in% tree) %>% 
+    ggplot(aes(x=date, y=values, group=date, color=as.factor(budburst_perc))) +
+    geom_point(size = 3)+
+    geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
+    scale_color_manual(values= cbPalette) +
+    scale_x_date(date_breaks = "1 week") +
+    xlab("Date") +
+    ylab("NDVI") +
+    labs(color="buds bursted (in %)") +
+    theme_light()
+  ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
+}
+
+## ggplots points errorbars - all trees
+out <- ndvi_sum %>% 
+  ggplot(aes(x=date, y=values, group=tree_id, color=as.factor(budburst_perc))) +
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
+  facet_grid(tree_id~., scales = "free_y") +
+  scale_color_manual(values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="buds bursted (in %)") +
+  theme_light()
+ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi_points_error.png"), out, height = 10, width = 15)
