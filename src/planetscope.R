@@ -12,6 +12,9 @@ trees <- readRDS("data/trees.RDS")
 ## create colorblind friendle palette
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
+#############################################################
+## create NDVI (or other indices) from planetscope images ##
+###########################################################
 ## NDVI for all planetscope files; create raster stack
 files_planetscope <- list.files("data/satellite_data/planetscope/",pattern = "SR_clip.tif")
 for(i in files_planetscope){
@@ -48,22 +51,26 @@ for(tree in as.character(unique(trees$id))){
 rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
 ndvi_long <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F) #merge with phenoclasses
 
+################################################################
+## create ggplots; timeseries of NDVI; grouped by phenophase ##
+##############################################################
 ## ggplot - single tree
+for(tree in unique(ndvi_long$tree_id)){
+  out <- ndvi_long %>% filter(tree_id %in% tree) %>% 
+    ggplot(aes(x=date, y=values, group=date, fill=as.factor(budburst_perc))) +
+    geom_boxplot() +
+    scale_fill_manual(values= cbPalette) +
+    scale_x_date(date_breaks = "1 week") +
+    xlab("Date") +
+    ylab("NDVI") +
+    labs(fill="buds bursted (in %)") +
+    theme_light()
+  ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi.png"), out, height = 10, width = 15)
+}
 
-tree <- unique(ndvi_long$tree_id)[2]
-ndvi_long %>% 
-  filter(tree_id %in% tree) %>% 
-  ggplot(aes(x=date, y=values, group=date, fill=as.factor(budburst_perc))) +
-  geom_boxplot() +
-  scale_fill_manual(values= cbPalette) +
-  scale_x_date(date_breaks = "1 week") +
-  xlab("Date") +
-  ylab("NDVI") +
-  labs(fill="buds bursted (in %)") +
-  theme_light()
   
 ## ggplot - all trees
-ndvi_long %>% 
+out <- ndvi_long %>% 
   ggplot(aes(x=date, y=values, group=tree_id, fill=as.factor(budburst_perc))) +
   geom_boxplot(aes(group=date)) +
   facet_grid(tree_id~., scales = "free_y") +
@@ -73,4 +80,4 @@ ndvi_long %>%
   ylab("NDVI") +
   labs(fill="buds bursted (in %)") +
   theme_light()
-
+ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi.png"), out, height = 10, width = 15)
