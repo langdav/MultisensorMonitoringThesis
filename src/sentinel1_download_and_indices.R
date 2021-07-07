@@ -12,7 +12,7 @@ library(sf);library(raster);library(RStoolbox);library(mapview)
 library(glcm);library(parallel)
 # input data ####
 
-#load("data/spatial/trees.RData")
+#load("data/trees_all.RData")
 trees <- readRDS("data/trees.RDS")
 colnames(trees)[1] <- "tree_id"
 load("data/satellite_data/sentinel1/products_sentinel1.RData")
