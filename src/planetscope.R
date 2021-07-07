@@ -1,4 +1,4 @@
-library(dplyr);library(ggplot2);library(viridis);library(tidyr)
+library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 library(raster);library(rgeos);library(rgdal);library(lidR)
 
 ## load data
@@ -35,7 +35,7 @@ dates <- unique(substr(names(ndvi_st),2,9)) #dates of planetscope images
 
 ndvi_long <- data.frame(tree_id = NULL, date = NULL, values = NULL)
 for(tree in as.character(unique(trees$id))){
-  las1 <- readLAS(paste0("C:/Users/hhans/Documents/lidar_crowns/data/trees/",tree,".las"))
+  las1 <- readLAS(paste0("data/lidar/single_trees/",tree,"_refined.las"))
   las_shp <- lidR::as.spatial(las1)
   ndvi_st_crop <- crop(ndvi_st, las_shp)
   for(date in dates){
@@ -89,7 +89,6 @@ ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi_boxplot.pn
 ## summarize data to tree, phenophase and date and calculate standard deviation
 # function found here: http://www.sthda.com/english/wiki/ggplot2-error-bars-quick-start-guide-r-software-and-data-visualization
 data_summary <- function(data, varname, groupnames){
-  require(plyr)
   summary_func <- function(x, col){
     c(mean = mean(x[[col]], na.rm=TRUE),
       sd = sd(x[[col]], na.rm=TRUE))
@@ -118,6 +117,23 @@ for(tree in unique(ndvi_long$tree_id)){
     theme_light()
   ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
 }
+
+
+ndvi_sum %>% filter(tree_id %in% tree) %>% 
+  ggplot(aes(x=date, y=values, group=date, color=as.factor(budburst_perc))) +
+  geom_point(size = 3)+
+  geom_line() +
+  geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
+  scale_color_manual(values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="buds bursted (in %)") +
+  theme_light()
+
+
+
+
 
 ## ggplots points errorbars - all trees
 out <- ndvi_sum %>% 
