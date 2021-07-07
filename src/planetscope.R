@@ -105,10 +105,10 @@ ndvi_sum <- data_summary(ndvi_long, varname="values",
 ## ggplots points errorbars - single trees
 for(tree in unique(ndvi_long$tree_id)){
   out <- ndvi_sum %>% filter(tree_id %in% tree) %>% 
-    ggplot(aes(x=date, y=values, group=date, color=as.factor(budburst_perc))) +
-    geom_point(size = 3)+
-    geom_line() +
-    geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
+    ggplot(aes(x=date, y=values)) +
+    geom_point(size = 3, aes(color=as.factor(budburst_perc)))+
+    geom_errorbar(aes(ymin=values-sd, ymax=values+sd, color=as.factor(budburst_perc)), width=1, size = 1, position=position_dodge(0.05)) +
+    geom_smooth(data = ndvi_long[which(ndvi_long$tree_id == tree),], aes(y=values), col = "black", size = .8) +
     scale_color_manual(values= cbPalette) +
     scale_x_date(date_breaks = "1 week") +
     xlab("Date") +
@@ -117,22 +117,6 @@ for(tree in unique(ndvi_long$tree_id)){
     theme_light()
   ggsave(paste0("out/planetscape/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
 }
-
-
-ndvi_sum %>% filter(tree_id %in% tree) %>% 
-  ggplot(aes(x=date, y=values, group=date, color=as.factor(budburst_perc))) +
-  geom_point(size = 3)+
-  geom_line() +
-  geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
-  scale_color_manual(values= cbPalette) +
-  scale_x_date(date_breaks = "1 week") +
-  xlab("Date") +
-  ylab("NDVI") +
-  labs(color="buds bursted (in %)") +
-  theme_light()
-
-
-
 
 
 ## ggplots points errorbars - all trees
@@ -149,3 +133,52 @@ out <- ndvi_sum %>%
   labs(color="buds bursted (in %)") +
   theme_light()
 ggsave(paste0("out/planetscape/all_trees_ndvi_timeline/all_trees_ndvi_points_error.png"), out, height = 10, width = 15)
+
+######################################################
+## NDVI points + fitted (loess, formula y + x ); per tree
+ndvi_long %>% 
+  ggplot(aes(date, values)) +
+  geom_smooth(method = "loess", formula = y~x) +
+  geom_point(aes(color=as.factor(budburst))) +
+  scale_color_manual(name = "Budburst", values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  facet_grid(tree_id~., scales = "free_y") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="buds bursted (in %)") +
+  theme_light()
+
+## NDVI points + fitted (loess, formula y + x ); all trees
+ndvi_long %>% 
+  ggplot(aes(date, values)) +
+  geom_smooth(method = "loess", formula = y~x, col = "black", size = .8) +
+  geom_point(aes(color=as.factor(budburst))) +
+  scale_color_manual(name = "Budburst", values= cbPalette) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="buds bursted (in %)") +
+  theme_light()
+ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_all_trees.png"), last_plot(), height = 10, width = 15)
+
+## budburst percent per tree + fitted NDVI (loess, formula y + x)
+ndvi_long %>% 
+  ggplot(aes(date, budburst_perc)) +
+  geom_line(aes(group = tree_id, color = tree_id), size = 1) +
+  geom_smooth(aes(y = test), method = "loess", col = "black", size = .8) +
+  scale_x_date(date_breaks = "1 week") +
+  scale_y_continuous(
+    name = "Percentage of bursted buds",
+    sec.axis = sec_axis(trans = ~.*(0.9237428/100),
+                        name = "NDVI")
+  ) +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="Tree ID") +
+  theme_light()
+ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
+
+## boxplots; 5 pheno classes
+
+
+
