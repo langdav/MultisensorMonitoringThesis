@@ -12,6 +12,10 @@ budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tr
 budburst$budburst <- NA
 budburst$budburst_perc <- NA
 
+
+###########################################################################
+## two budburst phases; budburst or no_budburst; percentage of budburst ##
+#########################################################################
 for(i in 1:nrow(budburst)){
   if(budburst$Phase.D[i] > 0 || budburst$Phase.E[i] > 0 || budburst$Phase.F[i] > 0){
     budburst$budburst[i] <- T
@@ -44,3 +48,8 @@ budburst_filled <- budburst_filled[,c("Tree_ID","date","budburst","budburst_perc
 colnames(budburst_filled)[1] <- "tree_id"
 
 write.csv(budburst_filled, "data/budburst_data/budburst_long.csv", row.names = F)
+
+###########################################################################
+## six budburst phases; A-F; percentage of each phase ##
+#########################################################################
+
