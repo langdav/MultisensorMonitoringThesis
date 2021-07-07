@@ -165,7 +165,7 @@ ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_all_trees.png"), last
 ndvi_long %>% 
   ggplot(aes(date, budburst_perc)) +
   geom_line(aes(group = tree_id, color = tree_id), size = 1) +
-  geom_smooth(aes(y = test), method = "loess", col = "black", size = .8) +
+  geom_smooth(aes(y = 100/max(values, na.rm = T)*values), method = "loess", col = "black", size = .8) +
   scale_x_date(date_breaks = "1 week") +
   scale_y_continuous(
     name = "Percentage of bursted buds",
@@ -179,6 +179,5 @@ ndvi_long %>%
 ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
 
 ## boxplots; 5 pheno classes
-
 
 
