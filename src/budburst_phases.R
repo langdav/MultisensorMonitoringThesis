@@ -5,7 +5,8 @@ sen1_results$date <- as.Date(sen1_results$date)
 
 budburst <- read.csv2("data/data_spring_phenology_mof_21.csv")
 budburst$date <- as.Date(budburst$Date, format = "%d.%m.%Y")
-budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tree_id)))
+#budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tree_id)))
+budburst <- budburst %>% filter(Tree_ID %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
 # A - Buds, dormant, winter aspect; B - Buds swell and get round; C -  Buds have swollen and have burst, D - Buds have burst, leaves are coiled, E - Light foliage, F - Full foliage
 # budburst: D, E, F
 # Classification for ggplots: 0% budburst, <50% budburst , <50% budburst, 100% foliage
@@ -30,7 +31,7 @@ for(i in 1:nrow(budburst)){
 budburst <- budburst[,c("date", "Tree_ID", "budburst", "budburst_perc")]
 
 ## observations were made in irregular intervals; fill days between observations with the values of the last observation, so that there is a value for every day of sentinel data
-for(i in as.character(unique(sen1_results$tree_id))){
+for(i in c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1")){
   if(!exists("budburst_filled")){
     budburst_filled <- budburst %>%
       filter(Tree_ID %in% i) %>% 
