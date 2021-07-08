@@ -1,8 +1,5 @@
 library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 
-sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
-sen1_results$date <- as.Date(sen1_results$date)
-
 budburst <- read.csv2("data/data_spring_phenology_mof_21.csv")
 budburst$date <- as.Date(budburst$Date, format = "%d.%m.%Y")
 #budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tree_id)))
