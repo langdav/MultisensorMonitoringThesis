@@ -1,5 +1,5 @@
 library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
-library(raster);library(rgeos);library(rgdal);library(lidR)
+library(raster);library(rgeos);library(rgdal);library(lidR);library(sf)
 
 ## load data
 # phenoclasses
@@ -9,8 +9,10 @@ phenoclasses$date <- as.Date(phenoclasses$date)
 # trees
 # trees <- readRDS("data/trees.RDS")
 load("data/trees_all.RData")
+trees <- st_transform(trees, 25832)
 trees$tree_id <- as.character(trees$tree_id)
-trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
+#trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
+trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
 ## create colorblind friendle palette
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -38,8 +40,9 @@ dates <- unique(substr(names(ndvi_st),2,9)) #dates of planetscope images
 
 ndvi_long <- data.frame(tree_id = NULL, date = NULL, values = NULL)
 for(tree in as.character(unique(trees$tree_id))){
-  las1 <- readLAS(paste0("data/lidar/single_trees/",tree,"_refined_m.las"))
-  las_shp <- lidR::as.spatial(las1)
+  
+  las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",tree,".gpkg"))
+  crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
   ndvi_st_crop <- crop(ndvi_st, las_shp)
   for(date in dates){
     for(i in which(substr(names(ndvi_st_crop), 2, 9) == date)){
@@ -60,6 +63,7 @@ write.csv(ndvi_long, "data/ndvi_long.csv", row.names = F)
 ###############################################################
 ## boxplots - single tree
 ndvi_long <- read.csv("data/ndvi_long.csv")
+ndvi_long$date <- as.Date(ndvi_long$date)
 
 for(tree in unique(ndvi_long$tree_id)){
   out <- ndvi_long %>% filter(tree_id %in% tree) %>% 
@@ -77,6 +81,7 @@ for(tree in unique(ndvi_long$tree_id)){
   
 ## boxplots - all trees
 ndvi_long <- read.csv("data/ndvi_long.csv")
+ndvi_long$date <- as.Date(ndvi_long$date)
 
 out <- ndvi_long %>% 
   ggplot(aes(x=date, y=values, group=tree_id, fill=as.factor(budburst_perc))) +
@@ -103,13 +108,16 @@ data_summary <- function(data, varname, groupnames){
   }
   data_sum<-ddply(data, groupnames, .fun=summary_func,
                   varname)
-  data_sum <- rename(data_sum, c("mean" = varname))
+  data_sum <- plyr::rename(data_sum, c("mean" = varname))
   return(data_sum)
 }
 
 ndvi_long <- read.csv("data/ndvi_long.csv")
+ndvi_long$date <- as.Date(ndvi_long$date)
+
 ndvi_sum <- data_summary(ndvi_long, varname="values", 
                     groupnames=c("tree_id", "date", "budburst", "budburst_perc"))
+
 
 ## ggplots points errorbars - single trees
 for(tree in unique(ndvi_long$tree_id)){
@@ -134,8 +142,9 @@ out <- ndvi_sum %>%
   geom_point(size = 3)+
   geom_line() +
   geom_errorbar(aes(ymin=values-sd, ymax=values+sd), width=1, size = 1, position=position_dodge(0.05)) +
-  facet_grid(tree_id~., scales = "free_y") +
-  scale_color_manual(values= cbPalette) +
+  #facet_grid(tree_id~., scales = "free_y") +
+  #scale_color_manual(values= cbPalette) +
+  scale_color_viridis(discrete = T) +
   scale_x_date(date_breaks = "1 week") +
   xlab("Date") +
   ylab("NDVI") +
@@ -149,7 +158,8 @@ ndvi_long %>%
   ggplot(aes(date, values)) +
   geom_smooth(method = "loess", formula = y~x) +
   geom_point(aes(color=as.factor(budburst))) +
-  scale_color_manual(name = "Budburst", values= cbPalette) +
+  #scale_color_manual(name = "Budburst", values= cbPalette) +
+  scale_color_viridis(name = "Budburst", discrete = T) +
   scale_x_date(date_breaks = "1 week") +
   facet_grid(tree_id~., scales = "free_y") +
   xlab("Date") +
@@ -158,12 +168,13 @@ ndvi_long %>%
   theme_light()
 ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
 
-## NDVI points + fitted (loess, formula y + x ); all trees
+## NDVI points + fitted (loess, formula y + x ); all trees; 26400 data points!
 ndvi_long %>% 
   ggplot(aes(date, values)) +
   geom_smooth(method = "loess", formula = y~x, col = "black", size = .8) +
   geom_point(aes(color=as.factor(budburst))) +
-  scale_color_manual(name = "Budburst", values= cbPalette) +
+  #scale_color_manual(name = "Budburst", values= cbPalette) +
+  scale_color_viridis(name = "Budburst", discrete = T) +
   scale_x_date(date_breaks = "1 week") +
   xlab("Date") +
   ylab("NDVI") +
@@ -187,7 +198,4 @@ ndvi_long %>%
   labs(color="Tree ID") +
   theme_light()
 ggsave(paste0("out/planetscape/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
-
-## boxplots; 5 pheno classes
-
 
