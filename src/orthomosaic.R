@@ -12,6 +12,7 @@ plot(test$X2021_05_14_orthomosaic_new.0.2.1)
 test_shp <- read_sf("data/orthomosaic/test.gpkg")
 test_shp <- st_transform(test_shp, 25832)
 test_small <- crop(test, test_shp)
+plot(test_small$test.1)
 
 # save 16 bit cropped raster
 raster::writeRaster(test_small, "data/orthomosaic/test_small.tif", overwrite = T)
@@ -25,9 +26,9 @@ test_small <- stack("data/orthomosaic/test_small.tif")
 #convert to 0-255 using the calc. function and basic raster algebra (takes relatively long)
 test_small_8b2 <- calc(test_small, fun=function(x){((x - min(x)) * 255)/(max(x)- min(x)) + 0})
 
-######################################################
-## merge multiple raster tiles into one big raster ##
-####################################################
+#######################################################################
+## merge multiple raster tiles into one big raster; NOT RECOMMENDED ##
+#####################################################################
 # files <- list.files("data/orthomosaic/2021_05_04/")
 # x <- list()
 # for(i in 1:length(files)){
@@ -60,11 +61,11 @@ ndvi_all_trees <- list()
 for(i in 1:nrow(trees)){
   for(u in 1:length(x)){
     if(!is.na(raster::cellFromXY(x[[u]], xy = c(trees$easting[i],trees$northing[i])))){
-      las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
+      las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
       crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
-      single_tree <- crop(x[[u]], las_shp)
+      single_tree <- crop(x[[u]], las_shp) #crop tile to single tree extent
       ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
-      ndvi_all_trees[[i]] <- ndvi
+      ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
     }
   }
 }
@@ -72,36 +73,10 @@ for(i in 1:nrow(trees)){
 #plot(ndvi_all_trees[[24]])
 
 
+#################################################################################
+## work with NDVI
+ndvi <- readRDS("data/orthomosaic/ndvi/ndvi_per_tree_20210504.rds")
+plot(ndvi[[2]])
+mean(ndvi[[1]]@data@values)
 
 
-
-
-################################################################
-## Blue, Green, Red, Red Edge, Near Infrared, FLIR (thermal) ##
-##############################################################
-plot(test_small$test_small.1)
-
-# calculate NDVI
-ndvi <- RStoolbox::spectralIndices(test, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
-plot(ndvi)
-
-# crop to single tree extent
-load("data/trees_all.RData")
-trees <- st_transform(trees, 25832)
-trees$tree_id <- as.character(trees$tree_id)
-#trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
-trees <- trees[c(1:50),] #reduce to trees with a budburst record
-
-las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",trees$tree_id[8],".gpkg"))
-crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
-
-plot(test_small$test_small.1); plot(las_shp, add = T)
-
-
-test_small_crop <- crop(test_small, las_shp)
-
-plotRGB(test_small_crop, r = "test_small.1", g = "test_small.2", b = "test_small.3", scale = 32767)
-
-
-ndvi <- RStoolbox::spectralIndices(test_small_crop, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
-plot(ndvi)
