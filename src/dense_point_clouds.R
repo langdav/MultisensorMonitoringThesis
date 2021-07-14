@@ -14,10 +14,14 @@ library(RSDB)
 #if(!require("lidRPlugins")) remotes::install_github("hunzikp/velox")
 #library(velox)
 
-las_all <- readLAS("data/drone_old/2020_05_26_densecloud.las")
+las_all <- readLAS("data/densecloud/2021_03_23_densecloud.laz")
 proj4string(las_all) <- CRS("+init=epsg:25832")
 #plot(las_all)
 plot(las_all, backend = "lidRviewer") 
+
+test_shp <- read_sf("data/orthomosaic/test.gpkg")
+test_shp <- st_transform(test_shp, 25832)
+las_small <- clip_roi(las_all, test_shp)
 
   
 trees <- readRDS("data/trees.RDS")
