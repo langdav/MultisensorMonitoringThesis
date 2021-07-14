@@ -79,4 +79,6 @@ ndvi <- readRDS("data/orthomosaic/ndvi/ndvi_per_tree_20210504.rds")
 plot(ndvi[[2]])
 mean(ndvi[[1]]@data@values)
 
-
+ndvi_means <- c()
+for(i in 1:50) ndvi_means <- c(ndvi_means, mean(ndvi[[i]]@data@values))
+plot(ndvi_means)
