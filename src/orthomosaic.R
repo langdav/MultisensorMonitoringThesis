@@ -75,7 +75,7 @@ for(i in 1:nrow(trees)){
 
 #################################################################################
 ## work with NDVI
-ndvi <- readRDS("data/orthomosaic/ndvi/ndvi_per_tree_20210504.rds")
+ndvi <- readRDS("out/orthomosaic/ndvi_per_tree_20210504.rds")
 plot(ndvi[[2]])
 mean(ndvi[[1]]@data@values)
 
