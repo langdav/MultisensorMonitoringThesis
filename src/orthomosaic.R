@@ -69,7 +69,7 @@ for(i in 1:nrow(trees)){
     }
   }
 }
-#saveRDS(ndvi_all_trees, paste0("data/orthomosaic/ndvi/ndvi_per_tree_20210504.rds"))
+#saveRDS(ndvi_all_trees, paste0("out/orthomosaic/ndvi_per_tree_20210504.rds"))
 #plot(ndvi_all_trees[[24]])
 
 

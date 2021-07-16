@@ -77,4 +77,19 @@ phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
 ndvi_sentinel2_phenoclasses <- merge(ndvi_all_trees_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-write.csv(ndvi_sentinel2_phenoclasses, "out/sentinel2/ndvi_long_format_phenoclasses.csv")
+#write.csv(ndvi_sentinel2_phenoclasses, "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.csv")
+
+## plotting
+ndvi_sentinel2_phenoclasses %>% 
+  ggplot(aes(x=date, y=ndvi, group=tree_id, color=as.factor(budburst_perc))) +
+  geom_point(size = 3)+
+  geom_line() +
+  #facet_grid(tree_id~., scales = "free_y") +
+  #scale_color_manual(values= cbPalette) +
+  scale_color_viridis(discrete = T) +
+  scale_x_date(date_breaks = "1 week") +
+  xlab("Date") +
+  ylab("NDVI") +
+  labs(color="buds bursted (in %)") +
+  theme_light()
+

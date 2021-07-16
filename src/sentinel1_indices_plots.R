@@ -77,7 +77,7 @@ budburst %>%
   labs(color = "Tree ID") +
   scale_color_viridis(discrete = T)
 
-ggsave(paste0("out/budburst_phases.png"), last_plot(), height = 10, width = 15)
+ggsave(paste0("out/sentinel1/budburst_phases.png"), last_plot(), height = 10, width = 15)
 
 ############################################################################################
 ## per sentinel1-indice plots; comparison of all 5 trees; budburst phases as background ##
@@ -103,7 +103,7 @@ for(i in 5:40){
     ylab(names(sen1_results)[i]) +
     labs(fill = "Budburst Phase") +
     labs(color = "Tree ID")
-  ggsave(paste0("out/sentinel1/sen1_indices/per_indice_timelines/",names(sen1_results)[i], ".png"), out, height = 15, width = 10)
+  ggsave(paste0("out/sentinel1/plots/sen1_indices/per_indice_timelines/",names(sen1_results)[i], ".png"), out, height = 15, width = 10)
 }
 
 ############################################################################
@@ -137,7 +137,7 @@ for(i in 3:38){
     ylab(names(indice_means)[i]) +
     labs(fill = "Budburst Phase") +
     labs(color = "Tree ID")
-  ggsave(paste0("out/sentinel1/sen1_indices/per_indice_means/",names(indice_means)[i], ".png"), out, height = 15, width = 10)
+  ggsave(paste0("out/sentinel1/plots/sen1_indices/per_indice_means/",names(indice_means)[i], ".png"), out, height = 15, width = 10)
 }
 
 #######################
