@@ -15,5 +15,5 @@ trees$tree_id <- as.character(trees$tree_id)
 #trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
-
+# NDVI; Sentinel-1
 
