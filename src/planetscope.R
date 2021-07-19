@@ -1,3 +1,4 @@
+rm(list = ls())
 library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 library(raster);library(rgeos);library(rgdal);library(lidR);library(sf)
 
@@ -49,14 +50,14 @@ for(tree in as.character(unique(trees$tree_id))){
       values <- ndvi_st_crop[[i]]@data@values
       ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(tree, length(values)),
                                                  date=rep(as.Date(date, format="%Y%m%d"), length(values)),
-                                                 values = values))
+                                                 ndvi = values))
     }
   }
   
 }
 rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
 ndvi_long <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-write.csv(ndvi_long, "out/planetscape/ndvi_long_format_phenoclasses_planetscape", row.names = F)
+write.csv(ndvi_long, "out/planetscope/ndvi_long_format_phenoclasses_planetscape", row.names = F)
 
 #################################################################
 ## create boxplots; timeseries of NDVI; grouped by phenophase ##
@@ -75,7 +76,7 @@ for(tree in unique(ndvi_long$tree_id)){
     ylab("NDVI") +
     labs(fill="buds bursted (in %)") +
     theme_light()
-  ggsave(paste0("out/planetscape/plots/single_tree_ndvi_timelines/",tree, "_ndvi_boxplot.png"), out, height = 10, width = 15)
+  ggsave(paste0("out/planetscope/plots/single_tree_ndvi_timelines/",tree, "_ndvi_boxplot.png"), out, height = 10, width = 15)
 }
 
   
@@ -93,7 +94,7 @@ out <- ndvi_long %>%
   ylab("NDVI") +
   labs(fill="buds bursted (in %)") +
   theme_light()
-ggsave(paste0("out/planetscape/plots/all_trees_ndvi_timeline/all_trees_ndvi_boxplot.png"), out, height = 10, width = 15)
+ggsave(paste0("out/planetscope/plots/all_trees_ndvi_timeline/all_trees_ndvi_boxplot.png"), out, height = 10, width = 15)
 
 
 #################################################################
@@ -132,7 +133,7 @@ for(tree in unique(ndvi_long$tree_id)){
     ylab("NDVI") +
     labs(color="buds bursted (in %)") +
     theme_light()
-  ggsave(paste0("out/planetscape/plots/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
+  ggsave(paste0("out/planetscope/plots/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
 }
 
 
@@ -150,7 +151,7 @@ out <- ndvi_sum %>%
   ylab("NDVI") +
   labs(color="buds bursted (in %)") +
   theme_light()
-ggsave(paste0("out/planetscape/plots/all_trees_ndvi_timeline/all_trees_ndvi_points_error.png"), out, height = 10, width = 15)
+ggsave(paste0("out/planetscope/plots/all_trees_ndvi_timeline/all_trees_ndvi_points_error.png"), out, height = 10, width = 15)
 
 ######################################################
 ## NDVI points + fitted (loess, formula y + x ); per tree
@@ -166,7 +167,7 @@ ndvi_long %>%
   ylab("NDVI") +
   labs(color="buds bursted (in %)") +
   theme_light()
-ggsave(paste0("out/planetscape/plots/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
+ggsave(paste0("out/planetscope/plots/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
 
 ## NDVI points + fitted (loess, formula y + x ); all trees; 26400 data points!
 ndvi_long %>% 
@@ -180,7 +181,7 @@ ndvi_long %>%
   ylab("NDVI") +
   labs(color="buds bursted (in %)") +
   theme_light()
-ggsave(paste0("out/planetscape/plots/fitted_ndvi_budburst_phases_all_trees.png"), last_plot(), height = 10, width = 15)
+ggsave(paste0("out/planetscope/plots/fitted_ndvi_budburst_phases_all_trees.png"), last_plot(), height = 10, width = 15)
 
 ## budburst percent per tree + fitted NDVI (loess, formula y + x)
 ndvi_long %>% 
@@ -197,5 +198,5 @@ ndvi_long %>%
   ylab("NDVI") +
   labs(color="Tree ID") +
   theme_light()
-ggsave(paste0("out/planetscape/plots/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
+ggsave(paste0("out/planetscope/plots/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
 
