@@ -1,3 +1,4 @@
+rm(list = ls())
 library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 library(raster);library(rgeos);library(rgdal);library(lidR);library(sf)
 
@@ -39,7 +40,7 @@ nir <- crop(nir, las_shp)
 ## NDVI of whole mof
 #NDVI = (nir-red)/(nir+red)
 ndvi <- (nir-red)/(nir+red)
-plot(ndvi)
+plot(ndvi$X20210320_SEN2A)
 
 ## single tree NDVI; raster
 ndvi_all_trees <- list()
@@ -77,7 +78,7 @@ phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
 ndvi_sentinel2_phenoclasses <- merge(ndvi_all_trees_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-#write.csv(ndvi_sentinel2_phenoclasses, "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.csv")
+#write.csv(ndvi_sentinel2_phenoclasses, "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.csv", row.names = F)
 
 ## plotting
 ndvi_sentinel2_phenoclasses %>% 
