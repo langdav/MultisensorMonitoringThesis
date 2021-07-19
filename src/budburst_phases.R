@@ -1,3 +1,4 @@
+rm(list = ls())
 library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 
 budburst <- read.csv2("data/data_spring_phenology_mof_21.csv")
