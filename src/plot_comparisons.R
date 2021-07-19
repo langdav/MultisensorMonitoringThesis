@@ -32,38 +32,9 @@ names(plan_ndvi) <- c("tree_id","date","ndvi","budburst","budburst_perc")
 # NDVI; orthomosaic,
 #ortho_ndvi <- read.csv("out/orthomosaic/ndvi_per_tree_20210504.rds")
 
-###### compare single trees in various products
-#test <- sen2_ndvi %>% filter(tree_id %in% unique(trees$tree_id)[1]) %>% dplyr::select(ndvi)
-sen2_tmp <- sen2_ndvi %>% filter(tree_id %in% unique(trees$tree_id)[1])
-sen2_tmp$platform <- rep("sentinel2", nrow(sen2_tmp))
-plan_tmp <- plan_ndvi %>% filter(tree_id %in% unique(trees$tree_id)[1])
-plan_tmp$platform <- rep("planetscope", nrow(plan_tmp))
-
-platforms_tmp <- rbind(sen2_tmp, plan_tmp)
-
-
-#########################
-platforms_tmp %>%
-  ggplot(aes(x=date, y=ndvi, color=platform)) +
-  geom_boxplot(size = 1) +
-  theme_light() +
-  xlab("Date") +
-  labs(fill = "Budburst Phase") +
-  labs(color = "Tree ID")
-
-
-platforms_tmp2 <- platforms_tmp %>% filter(date %in% as.Date(c("2021-03-20","2021-03-30","2021-05-09")))
-
-platforms_tmp2 %>% 
-  ggplot(aes(x=date, y=ndvi, color=platform)) +
-  geom_point()
-
-mean(platforms_tmp)
-
-
-
-
-#############################
+##################################################################
+## visual comparisons ######
+###########################
 ## NDVI~Budburst; Sentinel-2 and Planetscope; all NDVI values from all trees
 # sentinel2 and planetscope in one dataframe for plotting; adding an additional "platform" coloumn
 sen2_ndvi$platform <- rep("sentinel2", nrow(sen2_ndvi))
@@ -78,18 +49,25 @@ platforms_tmp %>%
   ggplot(aes(x=as.factor(budburst), y = ndvi, color = platform)) +
   geom_boxplot()
 
-#############################
+##################################################################
+## statistic comparisons ########################################
+################################################################
+
 ## shapiro-Wilk test for normal distribution of NDVI-values
 # Sentinel-2 -> outcome: NDVI normally distributed for budburst = T, but not for budburst = F
 shapiro.test(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == T)]) # p > 0.05 -> normalverteilt
-
 shapiro.test(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == F)]) # p < 0.05 -> nicht normalverteilt
-hist(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == F)]) ## histogram;  not normal distributed
-test <- scale(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == F)]);qqnorm(test);qqline(test) #Q-Q-Plot; z-standardisation;clearly not normal distributed!
 
 # Planetscope -> outcome: NDVI not normally distributed; not for budburst = T, nor for budburst = F
 shapiro.test(plan_ndvi$ndvi[which(plan_ndvi$budburst == T)]) # too large; > 5000 points; check graphically
 
+################################
+## check for normal distribution graphically (histogram & qqplot)
+# Sentinel-2
+hist(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == F)]) ## histogram;  not normal distributed
+test <- scale(sen2_ndvi$ndvi[which(sen2_ndvi$budburst == F)]);qqnorm(test);qqline(test) #Q-Q-Plot; z-standardisation;clearly not normal distributed!
+
+# Planetscope
 hist(plan_ndvi$ndvi[which(plan_ndvi$budburst == T)]) ## histogram; clearly not normal distributed!
 test <- scale(plan_ndvi$ndvi[which(plan_ndvi$budburst == T)]);qqnorm(test);qqline(test) #Q-Q-Plot; z-standardisation;clearly not normal distributed!
 
@@ -172,3 +150,12 @@ summary(anova_sen2) # p < 0.05 -> means differ
 # pairwise t-test (every group against every other group)
 pairwise.t.test(plan_ndvi$ndvi,plan_ndvi$budburst_perc, p.adjust="bonferroni")
 pairwise.t.test(sen2_ndvi$ndvi,sen2_ndvi$budburst_perc, p.adjust="bonferroni")
+
+################################
+## testing for differences between the NDVI of individual trees within the different products
+# Planetscape
+anova_plan <- aov(plan_ndvi$ndvi~plan_ndvi$tree_id)
+summary(anova_plan) # p < 0.05 -> means differ
+
+test <- pairwise.t.test(plan_ndvi$ndvi,plan_ndvi$tree_id, p.adjust="bonferroni")
+View(test$p.value)
