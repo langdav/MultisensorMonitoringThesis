@@ -62,9 +62,9 @@ ndvi_all_trees <- list()
 for(i in 1:nrow(trees)){
   for(u in 1:length(x)){
     if(!is.na(raster::cellFromXY(x[[u]], xy = c(trees$easting[i],trees$northing[i])))){
-      las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
-      crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
-      #las_shp <- spTransform(las_shp, CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs"))
+      las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
+      sf::st_crs(las_shp) <- 25832 #set crs
+      las_shp <- sf::st_transform(las_shp,  3857) #transform crs to crs of orthomosaics
       single_tree <- crop(x[[u]], las_shp) #crop tile to single tree extent
       ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
       ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
@@ -84,3 +84,16 @@ mean(ndvi[[1]]@data@values)
 ndvi_means <- c()
 for(i in 1:50) ndvi_means <- c(ndvi_means, mean(ndvi[[i]]@data@values))
 plot(ndvi_means)
+
+
+
+#############################################
+las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[17],".gpkg")) #load single tree shapefile
+sf::st_crs(las_shp) <- 25832
+las_shp <- sf::st_transform(las_shp,  3857)
+#las_shp <- sf::st_transform(las_shp,  "+proj=merc +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
+
+single_tree <- crop(test, las_shp) #crop tile to single tree extent
+ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+
+plotRGB(single_tree, r = 3, g = 2, b = 1)
