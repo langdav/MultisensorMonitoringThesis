@@ -5,8 +5,9 @@ library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 ##################################################################################
 # read in 16bit raster (value range 0 - 65535 instead of the value range of 0 - 255 of a 8bit image)
 test <- stack("data/orthomosaic/2021_05_14_orthomosaic_new-2-1.tif")
+test <- stack("data/orthomosaic/2021_04_27_orthomosaic.gpkg")
 plotRGB(test, r = 3, g = 2, b = 1)
-plot(test$X2021_05_14_orthomosaic_new.0.2.1)
+plot(test$X2021_04_27_orthomosaic.1)
 
 #crop to smaller (test) extent
 test_shp <- read_sf("data/orthomosaic/test.gpkg")
@@ -63,6 +64,7 @@ for(i in 1:nrow(trees)){
     if(!is.na(raster::cellFromXY(x[[u]], xy = c(trees$easting[i],trees$northing[i])))){
       las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
       crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
+      #las_shp <- spTransform(las_shp, CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs"))
       single_tree <- crop(x[[u]], las_shp) #crop tile to single tree extent
       ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
       ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
