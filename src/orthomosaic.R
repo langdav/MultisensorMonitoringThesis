@@ -39,9 +39,9 @@ test_small_8b2 <- calc(test_small, fun=function(x){((x - min(x)) * 255)/(max(x)-
 # }
 # m <- do.call(merge, x) #takes ages to process
 
-######################################
-## calculate NDVI for single trees ##
-####################################
+#########################################################
+## calculate NDVI for single trees using raster tiles ##
+#######################################################
 ## get tiles into a list
 files <- list.files("data/orthomosaic/2021_05_04/")
 x <- list()
