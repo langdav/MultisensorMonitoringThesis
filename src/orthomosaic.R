@@ -5,9 +5,9 @@ library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 ##################################################################################
 # read in 16bit raster (value range 0 - 65535 instead of the value range of 0 - 255 of a 8bit image)
 test <- stack("data/orthomosaic/2021_05_14_orthomosaic_new-2-1.tif")
-test <- stack("data/orthomosaic/2021_04_27_orthomosaic.gpkg")
+test <- stack("data/orthomosaic/2021_04_27_2021_04_27_orthomosaic.tif")
 plotRGB(test, r = 3, g = 2, b = 1)
-plot(test$X2021_04_27_orthomosaic.1)
+plot(test$X2021_04_27_2021_04_27_orthomosaic.2)
 
 #crop to smaller (test) extent
 test_shp <- read_sf("data/orthomosaic/test.gpkg")
@@ -88,12 +88,13 @@ plot(ndvi_means)
 
 
 #############################################
-las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[17],".gpkg")) #load single tree shapefile
+las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[31],".gpkg")) #load single tree shapefile
 sf::st_crs(las_shp) <- 25832
-las_shp <- sf::st_transform(las_shp,  3857)
+#las_shp <- sf::st_transform(las_shp,  3857)
 #las_shp <- sf::st_transform(las_shp,  "+proj=merc +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
 
 single_tree <- crop(test, las_shp) #crop tile to single tree extent
-ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+#ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
 
 plotRGB(single_tree, r = 3, g = 2, b = 1)
+plot(ndvi)
