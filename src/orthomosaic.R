@@ -5,9 +5,14 @@ library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 ##################################################################################
 # read in 16bit raster (value range 0 - 65535 instead of the value range of 0 - 255 of a 8bit image)
 test <- stack("data/orthomosaic/2021_05_14_orthomosaic_new-2-1.tif")
-test <- stack("data/orthomosaic/2021_04_27_2021_04_27_orthomosaic.tif")
+test <- stack("data/orthomosaic/2021_04_23_orthomosaic.tif")
 plotRGB(test, r = 3, g = 2, b = 1)
-plot(test$X2021_04_27_2021_04_27_orthomosaic.2)
+plot(test$X2021_04_23_orthomosaic.4)
+
+las_shp <- sf::read_sf(paste0("data/mof_extent/mof_extent_wgs84.gpkg")) #load single tree shapefile
+las_shp <- sf::st_transform(las_shp,25832)
+test2 <- crop(test$X2021_04_23_orthomosaic.4, las_shp) #
+plot(test2);plot(las_shp, add=T)
 
 #crop to smaller (test) extent
 test_shp <- read_sf("data/orthomosaic/test.gpkg")
@@ -75,20 +80,57 @@ for(i in 1:nrow(trees)){
 #plot(ndvi_all_trees[[24]])
 
 
-#################################################################################
-## work with NDVI
-ndvi <- readRDS("out/orthomosaic/ndvi_per_tree_20210504.rds")
-plot(ndvi[[2]])
-mean(ndvi[[1]]@data@values)
+#############################################################
+## calculate NDVI for single trees using a single BigTIFF ##
+###########################################################
+## load tree data 
+load("data/trees_all.RData")
+trees <- st_transform(trees, 25832)
+trees$tree_id <- as.character(trees$tree_id)
+trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
-ndvi_means <- c()
-for(i in 1:50) ndvi_means <- c(ndvi_means, mean(ndvi[[i]]@data@values))
-plot(ndvi_means)
+## calculate ndvi for all trees
+ndvi_all_trees <- list()
+for(i in 1:nrow(trees)){
+  las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[19],".gpkg")) #load single tree shapefile
+  if(is.na(crs(las_shp))){
+    sf::st_crs(las_shp) <- 25832
+  }
+  single_tree <- crop(test, las_shp) #crop tile to single tree extent
+  ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+  ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
+}
+#saveRDS(ndvi_all_trees, paste0("out/orthomosaic/ndvi_per_tree_20210504.rds"))
+#plot(ndvi_all_trees[[24]])
 
+#########################################################################
+## calculate mean NDVI for single trees and match witch budburst data ##
+#######################################################################
+# phenoclasses
+phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
+phenoclasses$date <- as.Date(phenoclasses$date)
+
+ndvi_mean <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
+for(i in 1:nrow(trees)){
+  las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
+  if(is.na(crs(las_shp))){
+    sf::st_crs(las_shp) <- 25832
+  }
+  single_tree <- crop(test, las_shp) #crop tile to single tree extent
+  ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+  
+  ndvi_mean <- rbind(ndvi_mean, data.frame(tree_id=trees$tree_id[i],
+                                           date=as.Date("2021-04-23"),
+                                           ndvi = mean(ndvi@data@values)))
+
+}
+
+ndvi_mean_long <- merge(ndvi_mean, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F) #merge with phenoclasses
+write.csv(ndvi_mean_long, "out/orthomosaic/ndvi_long_format_phenoclasses_orthomosaic", row.names = F)
 
 
 #############################################
-las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[31],".gpkg")) #load single tree shapefile
+las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[17],".gpkg")) #load single tree shapefile
 sf::st_crs(las_shp) <- 25832
 #las_shp <- sf::st_transform(las_shp,  3857)
 #las_shp <- sf::st_transform(las_shp,  "+proj=merc +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
