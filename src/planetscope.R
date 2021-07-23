@@ -113,10 +113,10 @@ data_summary <- function(data, varname, groupnames){
   return(data_sum)
 }
 
-ndvi_long <- read.csv("data/ndvi_long.csv")
+ndvi_long <- read.csv("out/planetscope/ndvi_long_format_phenoclasses_planetscape")
 ndvi_long$date <- as.Date(ndvi_long$date)
 
-ndvi_sum <- data_summary(ndvi_long, varname="values", 
+ndvi_sum <- data_summary(ndvi_long, varname="ndvi", 
                     groupnames=c("tree_id", "date", "budburst", "budburst_perc"))
 
 
@@ -169,7 +169,7 @@ ndvi_long %>%
   theme_light()
 ggsave(paste0("out/planetscope/plots/fitted_ndvi_budburst_phases_per_tree.png"), last_plot(), height = 10, width = 15)
 
-## NDVI points + fitted (loess, formula y + x ); all trees; 26400 data points!
+## NDVI points + fitted (loess, formula y + x ); all trees; 23000 data points!
 ndvi_long %>% 
   ggplot(aes(date, values)) +
   geom_smooth(method = "loess", formula = y~x, col = "black", size = .8) +
