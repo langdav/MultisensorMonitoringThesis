@@ -1,3 +1,4 @@
+rm(list = ls())
 library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 
 ####################################################################################
@@ -7,11 +8,30 @@ library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 test <- stack("data/orthomosaic/2021_05_14_orthomosaic_new-2-1.tif")
 test <- stack("data/orthomosaic/2021_04_23_orthomosaic.tif")
 plotRGB(test, r = 3, g = 2, b = 1)
-plot(test$X2021_04_23_orthomosaic.4)
+plot(test$X2021_04_23_orthomosaic.4);plot(las_shp, add=T);plot(single_tree, add=T);plot(single_tree2, add=T)
 
-las_shp <- sf::read_sf(paste0("data/mof_extent/mof_extent_wgs84.gpkg")) #load single tree shapefile
-las_shp <- sf::st_transform(las_shp,25832)
-test2 <- crop(test$X2021_04_23_orthomosaic.4, las_shp) #
+plot(las_shp);plot(single_tree, add=T)
+
+
+##############################################################
+i <- 2
+las_shp <- sf::read_sf(paste0(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))) #load single tree shapefile)
+plot(las_shp$geom);plot(trees$geometry[i], add = T, col = "red", lwd = 15)
+
+plot(trees$geometry[1],  col = "red", lwd = 15)
+
+
+load("data/trees.RData")
+trees <- sf::st_transform(trees, 25832)
+crs(test) <- crs(trees)
+
+plot(test);plot(trees$geometry, add = T, col = "red", lwd = 15)
+
+##############################################################
+
+las_shp <- sf::read_sf(paste0("data/mof_extent/mof_extent_new2.gpkg")) #load single tree shapefile
+las_shp <- sf::st_transform(las_shp,crs(test))
+test2 <- crop(test$X2021_04_27_orthomosaic.4, las_shp) #
 plot(test2);plot(las_shp, add=T)
 
 #crop to smaller (test) extent
@@ -58,7 +78,7 @@ for(i in 1:length(files)){
 
 ## load tree data 
 load("data/trees_all.RData")
-trees <- st_transform(trees, 25832)
+trees <- sf::st_transform(trees, 25832)
 trees$tree_id <- as.character(trees$tree_id)
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
