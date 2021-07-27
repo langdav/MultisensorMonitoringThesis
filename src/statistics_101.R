@@ -4,7 +4,42 @@ library(plyr);library(dplyr);library(ggplot2)
 ## load sample data
 tt_data <- readRDS("data/TreeTalker/TT_spectraldata.RDS")
 tt_data$AS7263_610 <- as.numeric(tt_data$AS7263_610)
+tt_data <- tt_data %>% filter(tt_data[,c(5:16)] > 5) ## remove entries < 5, as they are not needed for the analysis
 #head(tt_data)
+
+#########################################################
+## check for outliers ##
+#######################
+
+# boxplot for visual detection of outliers
+boxplot(tt_data$AS7263_610)
+boxplot(log(tt_data$AS7263_610)) #log-transformed
+
+###################
+# which values are outliers (based on Inter Quantile Range: Q25 - 1.5 * IQR  <-> Q75 + 1.5*IQR; IQR = Q75 - Q25)
+quantile(tt_data$AS7263_610, 0.25) #first quartile
+quantile(tt_data$AS7263_610, 0.75) #third quartile
+IQR(tt_data$AS7263_610) #innerquartile range
+
+boxplot.stats(tt_data$AS7263_610)$out # values wich lay beyond the interquartile  range
+out_ind <- which(tt_data$AS7263_610 %in% c(boxplot.stats(tt_data$AS7263_610)$out)) # locate outlier rows
+AS7263_610_clean <- tt_data$AS7263_610[-out_ind] #remove outlier rows
+
+# same for log-transformed values
+out_ind <- which(log(tt_data$AS7263_610) %in% c(boxplot.stats(log(tt_data$AS7263_610))$out)) # locate outlier rows
+AS7263_610_log_clean <- log(tt_data$AS7263_610[-out_ind]) #remove outlier rows
+
+####################
+# alternative method: find outliers according to 2.5 and 97.5 percentiles
+quantile(tt_data$AS7263_610, 0.025) #lower quantile; all values < this value are outliers
+quantile(tt_data$AS7263_610, 0.975) #upper quantile; all values > this value are outliers
+
+out_ind <- which(tt_data$AS7263_610 < quantile(tt_data$AS7263_610, 0.025) | tt_data$AS7263_610 > quantile(tt_data$AS7263_610, 0.975)) # locate outlier rows
+AS7263_610_clean <- tt_data$AS7263_610[-out_ind] #remove outlier rows
+
+# same for log-transformed values
+out_ind <- which(log(tt_data$AS7263_610) < quantile(log(tt_data$AS7263_610), 0.025) | log(tt_data$AS7263_610) > quantile(log(tt_data$AS7263_610), 0.975)) # locate outlier rows
+AS7263_610_log_clean <- log(tt_data$AS7263_610[-out_ind]) #remove outlier rows
 
 #########################################################
 ## check for normality ##
