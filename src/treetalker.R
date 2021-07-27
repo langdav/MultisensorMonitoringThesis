@@ -3,6 +3,7 @@ library(plyr);library(dplyr);library(ggplot2)
 
 tt_data <- readRDS("data/TreeTalker/TT_spectraldata.RDS")
 tt_data$AS7263_610 <- as.numeric(tt_data$AS7263_610)
+tt_data$TT_ID <- as.integer(tt_data$TT_ID)
 #head(tt_data)
 
 ## remove entries < 5
@@ -25,25 +26,38 @@ tt_data$AS7262_570 <- -666.72+(1.0462*tt_data$AS7262_570)
 tt_data$AS7262_600 <- -328.08+(0.8654*tt_data$AS7262_600)
 tt_data$AS7262_650 <- 202.77+(0.7829*tt_data$AS7262_650)
 
-## mean values per date
-tt_data$date <- as.Date(tt_data$timestamp)
-tt_data_mean <- aggregate(tt_data[, 5:16], list(tt_data$date), mean)
-tt_data_mean <- rename(tt_data_mean, "date" = "Group.1")
+## reduce to date range between 15.03. - 01.06.
+tt_data <- tt_data %>% filter(as.Date(timestamp) > as.Date("2021-03-14") & as.Date(timestamp) < as.Date("2021-06-02"))
 
-## some plotting
-tt_data_mean %>% 
-  ggplot(aes(x=date,y=AS7263_610, group=date)) +
-  geom_point() +
-  geom_smooth()
-
+## merge tree ids with tree talker data
+tt_tree_ids <- read.csv("data/TreeTalker/treetalker_tree_ids.csv")
+tt_data <- merge(tt_data, tt_tree_ids, by.x = "TT_ID", by.y = "tt_id")
 
 ## merge mean values per date with budburst data
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-tt_pheno <- merge(tt_data_mean, phenoclasses, by = "date", all.x = T, all.y = F)
+tt_data$date <- as.Date(tt_data$timestamp)
+tt_data <- tt_data[with(tt_data, order(tree_id,date)),]
+tt_pheno <- merge(tt_data, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F)
 
+## remove unnecessary rows and rearrange columns
+tt_pheno <- subset(tt_pheno,select = -c(record_number, device_type, integration_time, gain))
 
+tt_pheno <- tt_pheno %>% relocate(timestamp, .after = date)
+
+tt_pheno <- tt_pheno[order(tt_pheno$tree_id),]
+tt_pheno <- tt_pheno[order(tt_pheno$tree_id, tt_pheno$date),]
+
+tt_pheno <- tt_pheno[with(tt_pheno, order(tree_id,date)),]
+
+## save as csv
+write.csv(tt_pheno, "data/TreeTalker/tt_phenoclasses.csv", row.names = F)
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+##########################################################################################
 ## find and remove outliers
 # boxplot for visual detection of outliers
 boxplot(tt_data$AS7263_610)
