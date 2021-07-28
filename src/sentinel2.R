@@ -77,8 +77,8 @@ for(i in 1:length(ndvi_all_trees)){
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_sentinel2_phenoclasses <- merge(ndvi_all_trees_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-#write.csv(ndvi_sentinel2_phenoclasses, "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.csv", row.names = F)
+ndvi_long_pheno_sentinel2 <- merge(ndvi_all_trees_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
+save(ndvi_long_pheno_sentinel2, file = "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.RData")
 
 ## plotting
 ndvi_sentinel2_phenoclasses %>% 
