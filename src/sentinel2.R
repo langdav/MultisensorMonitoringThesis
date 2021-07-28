@@ -46,13 +46,12 @@ plot(ndvi$X20210320_SEN2A)
 ndvi_all_trees <- list()
 for(i in 1:nrow(trees)){
   las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
-  sf::st_crs(las_shp) <- 25832
+  #sf::st_crs(las_shp) <- 25832
   las_shp <- sf::st_transform(las_shp,  "+proj=laea +lat_0=55 +lon_0=20 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
   single_tree_red <- crop(red, las_shp) #crop tile to single tree extent
   single_tree_nir <- crop(nir, las_shp) #crop tile to single tree extent
   ndvi <- (single_tree_nir-single_tree_red)/(single_tree_nir+single_tree_red)
   ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
-  
 }
 #saveRDS(ndvi_all_trees, "out/sentinel2/ndvi_per_tree_raster.rds")
 #plot(ndvi_all_trees[[24]])
