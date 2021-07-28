@@ -39,7 +39,7 @@ rm(ndvi);rm(tmp_stack);rm(i);rm(files_planetscope)
 ## crop raster stack to single trees and create long format dataframe 
 dates <- unique(substr(names(ndvi_st),2,9)) #dates of planetscope images
 
-ndvi_long <- data.frame(tree_id = NULL, date = NULL, values = NULL)
+ndvi_long <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
 for(tree in as.character(unique(trees$tree_id))){
   
   las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",tree,".gpkg"))
