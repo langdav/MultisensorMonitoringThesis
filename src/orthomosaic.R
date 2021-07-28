@@ -144,10 +144,10 @@ for(mosaic in mosaics){
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_long_pheno <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
-ndvi_mean_pheno <- merge(ndvi_mean_per_tree, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
+ndvi_long_pheno_orthomosaic <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
+ndvi_mean_pheno_orthomosaic <- merge(ndvi_mean_per_tree, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
 ## save 
-write.csv(ndvi_long_pheno, "out/orthomosaic/ndvi_long_format_phenoclasses_orthomosaic.csv", row.names = F)
-write.csv(ndvi_mean_pheno, "out/orthomosaic/ndvi_mean_per_tree_long_format_phenoclasses_orthomosaic.csv", row.names = F)
-
+#write.csv(ndvi_long_pheno, "out/orthomosaic/ndvi_long_format_phenoclasses_orthomosaic.csv", row.names = F) #too big for GitHub; save as RData instead
+save(ndvi_long_pheno_orthomosaic, file = "out/orthomosaic/ndvi_long_format_phenoclasses_orthomosaic.RData")
+save(ndvi_mean_pheno_orthomosaic, file = "out/orthomosaic/ndvi_mean_per_tree_long_format_phenoclasses_orthomosaic.RData")
