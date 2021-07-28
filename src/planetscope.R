@@ -57,7 +57,7 @@ for(tree in as.character(unique(trees$tree_id))){
 }
 rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
 ndvi_long_pheno_planetscope <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-write.csv(ndvi_long_pheno_planetscope, file = "out/planetscope/ndvi_long_format_phenoclasses_planetscope.RData")
+save(ndvi_long_pheno_planetscope, file = "out/planetscope/ndvi_long_format_phenoclasses_planetscope.RData")
 
 #################################################################
 ## create boxplots; timeseries of NDVI; grouped by phenophase ##
