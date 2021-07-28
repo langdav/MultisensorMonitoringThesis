@@ -12,8 +12,8 @@ phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
 ## merge sen1_results with phenoclasses
-sen1_phenoclasses_long <- merge(sen1_results, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-write.csv(sen1_phenoclasses_long, "out/sentinel1/indicesi_long_format_phenoclasses_sentinel1.csv", row.names = F)
+indices_long_pheno_sentinel1 <- merge(sen1_results, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
+save(indices_long_pheno_sentinel1, file = "out/sentinel1/indices_long_format_phenoclasses_sentinel1.RData")
 
 ##########################################################################################################################################
 ##  create colorblind-friendly palette; can be used with scale_fill_manual(values= cbPalette) or scale_color_manual(values= cbPalette) ##
