@@ -42,17 +42,24 @@ tt_data <- tt_data[with(tt_data, order(tree_id,date)),]
 tt_pheno <- merge(tt_data, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F)
 
 ## remove unnecessary rows and rearrange columns
-tt_pheno <- subset(tt_pheno,select = -c(record_number, device_type, integration_time, gain))
+tt_long_phenoclasses <- subset(tt_pheno,select = -c(record_number, device_type, integration_time, gain))
 
-tt_pheno <- tt_pheno %>% relocate(timestamp, .after = date)
+tt_long_phenoclasses <- tt_long_phenoclasses %>% relocate(timestamp, .after = date)
 
-tt_pheno <- tt_pheno[order(tt_pheno$tree_id),]
-tt_pheno <- tt_pheno[order(tt_pheno$tree_id, tt_pheno$date),]
+tt_long_phenoclasses <- tt_long_phenoclasses[order(tt_long_phenoclasses$tree_id),]
+tt_long_phenoclasses <- tt_long_phenoclasses[order(tt_long_phenoclasses$tree_id, tt_long_phenoclasses$date),]
 
-tt_pheno <- tt_pheno[with(tt_pheno, order(tree_id,date)),]
+tt_long_phenoclasses <- tt_long_phenoclasses[with(tt_long_phenoclasses, order(tree_id,date)),]
 
 ## save as csv
 write.csv(tt_pheno, "data/TreeTalker/tt_phenoclasses.csv", row.names = F)
+
+## calculate and add NDVI
+#NDVI = (nir-red)/(nir+red); nir = 860 nm, red = 650 nm
+tt_pheno$ndvi <- (tt_pheno$AS7263_860-tt_pheno$AS7262_650)/(tt_pheno$AS7263_860+tt_pheno$AS7262_650)
+
+ndvi_long_format_phenoclasses_treetalker <- subset(tt_pheno, select = c(tree_id, date, timestamp, ndvi, budburst, budburst_perc))
+save(ndvi_long_format_phenoclasses_treetalker, file = "out/treetalker/ndvi_long_format_phenoclasses_treetalker.RData")
 
 ##########################################################################################
 ##########################################################################################
