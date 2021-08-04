@@ -5,21 +5,28 @@ library(raster);library(rgeos);library(rgdal); library(sf); library(RStoolbox)
 ## Micasense Channels: Blue, Green, Red, Red Edge, Near Infrared, FLIR (thermal) ##
 ##################################################################################
 # read in 16bit raster (value range 0 - 65535 instead of the value range of 0 - 255 of a 8bit image)
-test <- stack("data/orthomosaic/2021_04_23_orthomosaic.tif")
+test <- stack("data/orthomosaic/2021_05_28_orthomosaic.tif")
 
 load("data/trees.RData")
-trees <- sf::st_transform(trees, 25832)
+#trees <- sf::st_transform(trees, 25832)
 crs(test) <- crs(trees)
 
-plot(test$X2021_04_23_orthomosaic.1);plot(trees$geometry, add = T, col = "red", lwd = 15)
+plot(test$X2021_05_14_orthomosaic.1);plot(trees$geometry, add = T, col = "red", lwd = 15)
 
+writeRaster(test$X2021_05_28_orthomosaic.1, "tmp/test2.tif", overwrite = T)
+
+
+las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[1],".gpkg")) #load single tree shapefile
+las_shp
+single_tree <- crop(test$X2021_05_28_orthomosaic.1, las_shp) #crop tile to single tree extent
+plot(single_tree)
 
 ##############################################################
 
 las_shp <- sf::read_sf(paste0("data/mof_extent/mof_extent_new2.gpkg")) #load single tree shapefile
 las_shp <- sf::st_transform(las_shp,crs(test))
 test2 <- crop(test$X2021_04_27_orthomosaic.4, las_shp) #
-plot(test2);plot(las_shp, add=T)
+plot(test$X2021_05_14_orthomosaic.1);plot(las_shp, add=T)
 
 #crop to smaller (test) extent
 test_shp <- read_sf("data/orthomosaic/test.gpkg")
@@ -91,11 +98,11 @@ for(i in 1:nrow(trees)){
 ## calculate NDVI for single trees using a single BigTIFF ##
 ###########################################################
 ## load tree data 
-load("data/trees.RData")
-trees <- st_transform(trees, 25832)
-trees$tree_id <- as.character(trees$tree_id)
-trees <- trees[c(1:50),] #reduce to trees with a budburst record
-trees <- trees[-c(30,37),] #those two trees lay beyond the mosaics boundaries and, hence, need to be excluded
+# load("data/trees.RData")
+# trees <- st_transform(trees, 25832)
+# trees$tree_id <- as.character(trees$tree_id)
+# trees <- trees[c(1:50),] #reduce to trees with a budburst record
+# trees <- trees[-c(30,37),] #those two trees lay beyond the mosaics boundaries and, hence, need to be excluded
 
 ## list available mosaics
 mosaics <- list.files("data/orthomosaic/", pattern = ".tif")
@@ -107,34 +114,82 @@ ndvi_mean_per_tree <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
 
 for(mosaic in mosaics){
   ortho <- stack(paste0("data/orthomosaic/", mosaic))
-  for(i in 1:nrow(trees)){
-    las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
-    # if(is.na(crs(las_shp))){
-    #   sf::st_crs(las_shp) <- 25832
-    # }
-    single_tree <- crop(ortho, las_shp) #crop tile to single tree extent
-    ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
-    #ndvi_all_trees[[i]] <- ndvi #write single tree NDVI-rasters into list
-    ndvi <- ndvi@data@values
-    ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
-                                             date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi)),
-                                             ndvi = ndvi))
+  
+  if(mosaic %in% c("2021_04_23_orthomosaic.tif", "2021_04_27_orthomosaic.tif")) {
+    # those mosaics are espg 25832 transformed; all other mosaics are espg 4326 transformed 
+    load("data/trees.RData")
+    trees <- st_transform(trees, 25832)
+    trees$tree_id <- as.character(trees$tree_id)
+    trees <- trees[c(1:50),] #reduce to trees with a budburst record
+    crs(ortho) <- crs(trees)
     
-    ## remove outliers and calculate NDVI mean values per tree
-    outliers <- which(ndvi %in% c(boxplot.stats(ndvi)$out)) 
-    outliers_removed <- ndvi[-outliers] #remove rows that are containing the outliers
-    
-    if(length(outliers_removed) != 0){
-      ndvi_mean <- mean(outliers_removed)
-      } else {
-      ndvi_mean <- mean(ndvi)
+    for(i in 1:nrow(trees)){
+      las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
+      single_tree <- crop(ortho, las_shp) #crop tile to single tree extent
+      ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+      #ndvi_all_trees[[i]] <- ndvi #write single tree NDVI-rasters into list
+      ndvi <- ndvi@data@values
+      
+      # as in some mosaics not all trees lay within the extent, trees that contain more than 10 percent NA get removed
+      if(sum(is.na(ndvi)) > 0.1*length(ndvi)){
+        ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
+                                                 date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi)),
+                                                 ndvi = ndvi))
+        
+        ## remove outliers and calculate NDVI mean values per tree
+        outliers <- which(ndvi %in% c(boxplot.stats(ndvi)$out)) 
+        outliers_removed <- ndvi[-outliers] #remove rows that are containing the outliers
+        
+        if(length(outliers_removed) != 0){
+          ndvi_mean <- mean(outliers_removed)
+        } else {
+          ndvi_mean <- mean(ndvi)
+        }
+        
+        
+        ndvi_mean_per_tree <- rbind(ndvi_mean_per_tree, data.frame(tree_id=trees$tree_id[i],
+                                                                   date=as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"),
+                                                                   ndvi = ndvi_mean))
+        
       }
+    }
+  } else {
+    load("data/trees.RData")
+    trees$tree_id <- as.character(trees$tree_id)
+    trees <- trees[c(1:50),] #reduce to trees with a budburst record
+    crs(ortho) <- crs(trees)
     
-    
-    ndvi_mean_per_tree <- rbind(ndvi_mean_per_tree, data.frame(tree_id=trees$tree_id[i],
-                                                               date=as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"),
-                                                               ndvi = ndvi_mean))
-    
+    for(i in 1:nrow(trees)){
+      las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
+      las_shp <- sf::st_transform(las_shp, 25832)
+      single_tree <- crop(ortho, las_shp) #crop tile to single tree extent
+      ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
+      #ndvi_all_trees[[i]] <- ndvi #write single tree NDVI-rasters into list
+      ndvi <- ndvi@data@values
+      
+      # as in some mosaics not all trees lay within the extent, trees that contain more than 10 percent NA get removed
+      if(sum(is.na(ndvi)) > 0.1*length(ndvi)){
+        ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
+                                                 date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi)),
+                                                 ndvi = ndvi))
+        
+        ## remove outliers and calculate NDVI mean values per tree
+        outliers <- which(ndvi %in% c(boxplot.stats(ndvi)$out)) 
+        outliers_removed <- ndvi[-outliers] #remove rows that are containing the outliers
+        
+        if(length(outliers_removed) != 0){
+          ndvi_mean <- mean(outliers_removed)
+        } else {
+          ndvi_mean <- mean(ndvi)
+        }
+        
+        
+        ndvi_mean_per_tree <- rbind(ndvi_mean_per_tree, data.frame(tree_id=trees$tree_id[i],
+                                                                   date=as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"),
+                                                                   ndvi = ndvi_mean))
+        
+      }
+    }
   }
 }
 #saveRDS(ndvi_all_trees, paste0("out/orthomosaic/ndvi_per_tree_20210504.rds"))
