@@ -157,18 +157,18 @@ for(mosaic in mosaics){
     load("data/trees.RData")
     trees$tree_id <- as.character(trees$tree_id)
     trees <- trees[c(1:50),] #reduce to trees with a budburst record
-    crs(ortho) <- crs(trees)
+    #crs(ortho) <- crs(trees)
     
     for(i in 1:nrow(trees)){
       las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
-      las_shp <- sf::st_transform(las_shp, 25832)
+      las_shp <- sf::st_transform(las_shp, 4326)
       single_tree <- crop(ortho, las_shp) #crop tile to single tree extent
       ndvi <- RStoolbox::spectralIndices(single_tree, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
       #ndvi_all_trees[[i]] <- ndvi #write single tree NDVI-rasters into list
       ndvi <- ndvi@data@values
       
       # as in some mosaics not all trees lay within the extent, trees that contain more than 10 percent NA get removed
-      if(sum(is.na(ndvi)) > 0.1*length(ndvi)){
+      if(sum(is.na(ndvi)) < 0.1*length(ndvi)){
         ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
                                                  date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi)),
                                                  ndvi = ndvi))
@@ -192,8 +192,6 @@ for(mosaic in mosaics){
     }
   }
 }
-#saveRDS(ndvi_all_trees, paste0("out/orthomosaic/ndvi_per_tree_20210504.rds"))
-
 
 ## merge with phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
