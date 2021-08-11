@@ -131,7 +131,7 @@ for(mosaic in mosaics){
       ndvi <- ndvi@data@values
       
       # as in some mosaics not all trees lay within the extent, trees that contain more than 10 percent NA get removed
-      if(sum(is.na(ndvi)) > 0.1*length(ndvi)){
+      if(sum(is.na(ndvi)) < 0.1*length(ndvi)){
         ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
                                                  date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi)),
                                                  ndvi = ndvi))
