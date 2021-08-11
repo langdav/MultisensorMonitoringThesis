@@ -49,7 +49,3 @@ colnames(budburst_filled)[1] <- "tree_id"
 
 write.csv(budburst_filled, "data/budburst_data/budburst_long.csv", row.names = F)
 
-###########################################################################
-## six budburst phases; A-F; percentage of each phase ##
-#########################################################################
-
