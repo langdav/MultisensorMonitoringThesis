@@ -41,6 +41,23 @@ AS7263_610_clean <- tt_data$AS7263_610[-out_ind] #remove outlier rows
 out_ind <- which(log(tt_data$AS7263_610) < quantile(log(tt_data$AS7263_610), 0.025) | log(tt_data$AS7263_610) > quantile(log(tt_data$AS7263_610), 0.975)) # locate outlier rows
 AS7263_610_log_clean <- log(tt_data$AS7263_610[-out_ind]) #remove outlier rows
 
+####################
+# alternative method: identify outliers using the rstatix package
+# example data: all-in-one data frame with ndvi values from all platforms
+load("out/all_in_one/all_platforms_daily_ndvi_values.RData")
+
+# we are looking for outliers within each individual group "orthomosaic", "planetscope", "sentinel2"
+library(rstatix)
+aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),] %>% 
+  group_by(platform) %>%
+  identify_outliers(ndvi_mean)
+
+# we are looking for outliers within each individual group "orthomosaic", "planetscope", "sentinel2" and for each individual tree
+aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),] %>% 
+  group_by(platform) %>%
+  group_by(tree_id) %>% 
+  identify_outliers(ndvi_mean)
+
 #########################################################
 ## check for normality ##
 ########################
