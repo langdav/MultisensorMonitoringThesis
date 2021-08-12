@@ -61,7 +61,7 @@ aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", 
 #########################################################
 ## check for normality ##
 ########################
-
+  
 ################
 ## graphically
 ################
@@ -106,6 +106,14 @@ for(i in 1:12) {
   qqPlot(data[,i])
 }
 
+####################
+# alternative method: multiple QQ-Plots with package ggpubr
+# example data: all-in-one data frame with ndvi values from all platforms
+load("out/all_in_one/all_platforms_daily_ndvi_values.RData")
+
+# we are looking for normality within each individual group "orthomosaic", "planetscope", "sentinel2"
+library(ggpubr)
+ggqqplot(aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),], "ndvi_mean", facet.by = "platform")
 
 ####################
 ## statistically
@@ -114,6 +122,16 @@ for(i in 1:12) {
 ## shapiro-Wilk test for normal distribution; only applicable for data < 5000
 # a p-value > 0.05 means that the data is normally distributed (as H0: data IS normally distributed)
 shapiro.test(tt_data$AS7263_610) # dataset too big (> 5000); another test is needed (e.g. a graphical test)
+
+##################################################################
+## check for variance homogenity (Anova prerequisite) ##
+#######################################################
+# example data: all-in-one data frame with ndvi values from all platforms
+load("out/all_in_one/all_platforms_daily_ndvi_values.RData")
+
+library(car)
+leveneTest(ndvi_mean~platform, data = aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),]) 
+# p < 0.05; no Variance homogeneity -> Anova can not be used; use Welch-Anova instead
 
 ##################################################################
 ## check for (and remove) outliers ##
