@@ -85,7 +85,9 @@ orthomosaic_daily_means <- ndvi_mean_pheno_orthomosaic; rm(ndvi_mean_pheno_ortho
 orthomosaic_daily_means <- rename(orthomosaic_daily_means, ndvi_mean = ndvi)
 
 # all NDVI values (multiple values per tree)
-load("out/orthomosaic/outlier_free_ndvi_mean_per_tree_long_format_phenoclasses_orthomosaic.RData")
+load("out/orthomosaic/outlier_free_ndvi_daily_mean_per_tree_orthomosaic.RData")
+orthomosaic_daily_means <- orthomosaic; rm(orthomosaic)
+orthomosaic_daily_means <- rename(orthomosaic_daily_means, ndvi_mean = ndvi)
 # load("out/orthomosaic/ndvi_long_format_phenoclasses_orthomosaic.RData") #only load if necessary, as resulting dataframe is huge and contains 8553222 rows
 # orthomosaic <- ndvi_long_pheno_orthomosaic; rm(ndvi_long_pheno_orthomosaic)
 # 
@@ -290,107 +292,7 @@ out #NDVI-means of Sentinel2 and Planetscope differ on 2021-03-30; do not differ
 
 ################################################################################
 ################################################################################
-################################################################################
-# 4) group differences -> different platforms; NDVI values within budburst classes "budburst" & "no budburst"
 
-## outlier detection and removal
-# budburst
-boxplot(aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == T)]) #no outliers
-
-boxplot(aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == T)]) # outliers
-boxplot.stats(aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == T)])$out
-aio <- aio[-which(aio$platform == "orthomosaic" &
-                    aio$budburst == T & 
-                    aio$ndvi_mean %in% boxplot.stats(aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == T)])$out),]
-
-boxplot(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == T)]) # outliers
-boxplot.stats(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == T)])$out
-aio <- aio[-which(aio$platform == "sentinel2" &
-                    aio$budburst == T & 
-                    aio$ndvi_mean %in% boxplot.stats(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == T)])$out),]
-
-# no budburst
-boxplot(aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == F)]) # outliers
-boxplot.stats(aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == F)])$out
-aio <- aio[-which(aio$platform == "planetscope" &
-                    aio$budburst == F & 
-                    aio$ndvi_mean %in% boxplot.stats(aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == F)])$out),]
-
-boxplot(aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == F)]) # no outliers
-
-boxplot(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == F)]) # outliers
-boxplot.stats(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == F)])$out
-aio <- aio[-which(aio$platform == "sentinel2" &
-                    aio$budburst == F & 
-                    aio$ndvi_mean %in% boxplot.stats(aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == F)])$out),]
-
-## check for normal distribution
-#data <- aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == T)] #not normally distributed
-#data <- aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == T)] #normally distributed
-#data <- aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == T)] #normally distributed
-#data <- aio$ndvi_mean[which(aio$platform == "planetscope" & aio$budburst == F)] #not normally distributed
-#data <- aio$ndvi_mean[which(aio$platform == "orthomosaic" & aio$budburst == F)] #not normally distributed
-#data <- aio$ndvi_mean[which(aio$platform == "sentinel2" & aio$budburst == T)] #normally distributed
-std <- sd(data,na.rm=T) #standard deviation of data; for normal distribution
-m <- mean(data,na.rm=T) #mean of data; for normal distribution
-hist(data, freq=F, main = paste(colnames(data)))
-curve(dnorm(x,mean=m,sd=std), add=TRUE,col="red")
-
-shapiro.test(data) # not all data are normally distributed -> Anova
-
-## for Anova: testing if residuals are normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "planetscope" & aio$budburst == T),]) # normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "orthomosaic" & aio$budburst == T),]) # normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "sentinel2" & aio$budburst == T),]) # normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "planetscope" & aio$budburst == F),]) # normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "orthomosaic" & aio$budburst == F),]) # normally distributed
-#model <- lm(ndvi_mean~date, data = aio[which(aio$platform == "sentinel2" & aio$budburst == F),]) # normally distributed
-model <- lm(ndvi_mean~platform, data = aio[which(aio$budburst == F),]) # normally distributed
-car::qqPlot(model$residuals)
-
-## check for variance homogeneity (Anova prerequisite)
-library(car)
-leveneTest(ndvi_mean~platform, data = aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),]) 
-# p < 0.05; no Variance homogeneity -> WELCH-ANOVA
-
-## check for normally distributed residuals within groups (Anova prerequisite)
-# test for normal distribution of residuals within all groups (fast and easy)
-model  <- lm(ndvi_mean ~ platform, data = aio[which(aio$budburst == F),])
-car::qqPlot(residuals(model))
-shapiro.test(residuals(model)) # p < 0.5; residuals not normally distributed
-
-# test for normal distribution for each group individually
-library(ggpubr)
-ggqqplot(aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),], "ndvi_mean", facet.by = "platform")
-
-
-
-
-## Anova for all platforms and "budburst"
-aio %>% 
-  filter(budburst == T) %>% 
-  filter(platform %in% c("orthomosaic", "planetscope", "sentinel2")) %>% 
-  ggplot(aes(x=platform, y=ndvi_mean, group=platform)) +
-  geom_boxplot()
-
-anova <- aov(ndvi_mean~platform, data = aio[which(aio$budburst == T & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),])
-summary(anova)[[1]] #significantly differ
-
-## Post Hoc Test; compare each group to each other; Tukey procedure; see https://www.beratung-statistik.de/statistik-beratung-infos/r-tutorial/r-varianzanalyse-post-hoc/
-# diff - difference of mean values; 
-TukeyHSD(aov(ndvi_mean~platform, data = aio[which(aio$budburst == T & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),])) #planetscope - orthomosaic do not differ significantly
-
-## Anova for all platforms and "no budburst"
-aio %>% 
-  filter(budburst == F) %>% 
-  filter(platform %in% c("orthomosaic", "planetscope", "sentinel2")) %>% 
-  ggplot(aes(x=platform, y=ndvi_mean, group=platform)) +
-  geom_boxplot()
-
-anova <- aov(ndvi_mean~platform, data = aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),])
-summary(anova)[[1]] #significantly differ
-
-TukeyHSD(aov(ndvi_mean~platform, data = aio[which(aio$budburst == F & aio$platform %in% c("orthomosaic", "planetscope", "sentinel2")),])) 
 
 
 
