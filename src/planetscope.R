@@ -63,8 +63,8 @@ save(ndvi_long_pheno_planetscope, file = "out/planetscope/ndvi_long_format_pheno
 ## create boxplots; timeseries of NDVI; grouped by phenophase ##
 ###############################################################
 ## boxplots - single tree
-ndvi_long <- read.csv("data/ndvi_long.csv")
-ndvi_long$date <- as.Date(ndvi_long$date)
+load("out/planetscope/ndvi_long_format_phenoclasses_planetscope.RData")
+ndvi_long <- ndvi_long_pheno_planetscope;rm(ndvi_long_pheno_planetscope)
 
 for(tree in unique(ndvi_long$tree_id)){
   out <- ndvi_long %>% filter(tree_id %in% tree) %>% 
@@ -79,7 +79,6 @@ for(tree in unique(ndvi_long$tree_id)){
   ggsave(paste0("out/planetscope/plots/single_tree_ndvi_timelines/",tree, "_ndvi_boxplot.png"), out, height = 10, width = 15)
 }
 
-  
 ## boxplots - all trees
 ndvi_long <- read.csv("data/ndvi_long.csv")
 ndvi_long$date <- as.Date(ndvi_long$date)
@@ -135,7 +134,6 @@ for(tree in unique(ndvi_long$tree_id)){
     theme_light()
   ggsave(paste0("out/planetscope/plots/single_tree_ndvi_timelines/",tree, "_ndvi_points_error.png"), out, height = 10, width = 15)
 }
-
 
 ## ggplots points errorbars - all trees
 out <- ndvi_sum %>% 
