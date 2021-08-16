@@ -28,11 +28,13 @@ planetscope_all_tree_means <- aio_all_tree_means %>% filter(platform == "planets
 # per tree NDVI
 planetscope %>% 
   ggplot(aes(x=date, y=ndvi_mean, color = as.factor(budburst))) +
-  geom_smooth(method = loess)
+  geom_point() +
+  geom_smooth(method = "loess")
 
 # all trees mean NDVI
 planetscope_all_tree_means %>% 
   ggplot(aes(x=date, y=ndvi_mean, color = as.factor(budburst))) +
+  geom_point() +
   geom_smooth(method = loess)
 
 
@@ -46,11 +48,13 @@ orthomosaic_all_tree_means <- aio_all_tree_means %>% filter(platform == "orthomo
 # per tree NDVI
 orthomosaic %>% 
   ggplot(aes(x=date, y=ndvi_mean, color = as.factor(budburst))) +
+  geom_point() +
   geom_smooth(method = loess)
 
 # all trees mean NDVI
 orthomosaic_all_tree_means %>% 
   ggplot(aes(x=date, y=ndvi_mean, color = as.factor(budburst))) +
+  geom_point() +
   geom_smooth(method = loess)
 
 
@@ -64,7 +68,7 @@ sentinel2_all_tree_means <- aio_all_tree_means %>% filter(platform == "sentinel2
 # fitting a mopdel does not make sense here, as there is only one image containing budburst = T
 sentinel2 %>% 
   ggplot(aes(x=date, y=ndvi_mean, color = as.factor(budburst))) +
-  geom_boxplot(aes(group = as.factor(budburst)))
+  geom_boxplot(aes(group = date))
 
 # all trees mean NDVI
 sentinel2_all_tree_means %>% 
@@ -138,9 +142,9 @@ ggplot() +
   facet_grid(platform~., scales = "free_y") +
   scale_color_viridis(discrete = T) + 
   theme_light() +
-  xlab("Date") +
+  xlab("NDVI") +
   scale_x_date(date_breaks = "2 weeks") +
-  ylab(names(aio)[i]) +
+  ylab(tree) +
   labs(fill = "Budburst Phase") +
   labs(color = "Tree ID")+
   geom_rect(data = buddies_budburst_classes[which(buddies_budburst_classes$tree_id == tree),], aes(xmin=first_date, xmax=last_date, ymin = 0, ymax=1, fill = budburst), color = NA, alpha=0.5) +
@@ -157,10 +161,26 @@ ggplot() +
   theme_light() +
   xlab("Date") +
   scale_x_date(date_breaks = "2 weeks") +
-  ylab(names(aio)[i]) +
+  ylab("NDVI") +
   labs(fill = "Budburst Phase") +
   labs(color = "Tree ID")+
   geom_rect(data = buddies_budburst_percent[which(buddies_budburst_percent$tree_id == tree),], aes(xmin=first_date, xmax=last_date, ymin = 0, ymax=1, fill = as.factor(budburst_perc)), color = NA, alpha=0.5) +
+  scale_fill_brewer(palette="YlGn")  #Greys = RColorBrewer Code; alternative (good) colorspaces: YlGn, Greens
+
+## boxplots
+tree <- unique(aio$tree_id)[34]
+
+ggplot() +
+  geom_boxplot(data = aio, aes(x=date, y=ndvi_mean, group=date), size = 1) +
+  facet_grid(platform~., scales = "free_y") +
+  scale_color_viridis(discrete = T) + 
+  theme_light() +
+  xlab("Date") +
+  scale_x_date(date_breaks = "2 weeks") +
+  ylab("NDVI") +
+  labs(fill = "Budburst Phase") +
+  labs(color = "Tree ID")+
+  geom_rect(data = buddies_budburst_classes[which(buddies_budburst_classes$tree_id == tree),], aes(xmin=first_date, xmax=last_date, ymin = 0, ymax=1, fill = budburst), color = NA, alpha=0.5) +
   scale_fill_brewer(palette="YlGn")  #Greys = RColorBrewer Code; alternative (good) colorspaces: YlGn, Greens
 
 
@@ -187,17 +207,17 @@ aio_slope <- cbind(aio, slope, highest_slope)
 
 tree <- unique(aio_slope$tree_id)[2]
 
-ggplot() +
+ggplot() + 
   geom_line(data = aio_slope[which(aio_slope$tree_id==tree),], aes(x=date, y=ndvi_mean, group=platform, color = highest_slope), size = 1) +
   facet_grid(platform~., scales = "free_y") +
   scale_color_discrete() +
   theme_light() +
   xlab("Date") +
   scale_x_date(date_breaks = "2 weeks") +
-  ylab(names(aio_slope)[i]) +
+  ylab("NDVI") +
   labs(fill = "Budburst Phase") +
   labs(color = "Highest Slope")+
   geom_rect(data = buddies_budburst_percent[which(buddies_budburst_percent$tree_id == tree),], aes(xmin=first_date, xmax=last_date, ymin = 0, ymax=1, fill = as.factor(budburst_perc)), color = NA, alpha=0.5) +
   scale_fill_brewer(palette="Greys")  #Greys = RColorBrewer Code; alternative (good) colorspaces: YlGn, Greens
-
+       
 aio_slope[which(aio_slope$tree_id==tree & aio$platform=="planetscope"),]
