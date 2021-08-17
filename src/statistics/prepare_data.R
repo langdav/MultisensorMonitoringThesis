@@ -66,6 +66,9 @@ for(tree in unique(orthomosaic$tree_id)){
   }
 }
 
+# save resulting data frame
+save(orthomosaic, file = "out/orthomosaic/outlier_free_ndvi_long_format_phenoclasses_orthomosaic.RData")
+
 # after removing outliers, calculate daily mean NDVI values
 orthomosaic_mean_per_tree <- orthomosaic %>% 
   group_by(tree_id, date) %>% 
