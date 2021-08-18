@@ -1,3 +1,8 @@
+#author: David Langenohl
+#last modified: 17.08.2021
+#description: calculate NDVI values from TreeTalker spectra
+#NOTE: NDVI = (nir-red)/(nir+red); nir = 860 nm, red = 650 nm
+
 rm(list = ls())
 library(plyr);library(dplyr);library(ggplot2)
 
