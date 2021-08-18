@@ -22,7 +22,7 @@ for(mosaic in mosaics){
   crs(ortho) <- crs(trees)
   
   for(i in 1:nrow(trees)){
-    cat("Processing", trees_tree_id[i], "in Orthomosaic", mosaic,"\n")
+    cat("Processing", trees$tree_id[i], "in Orthomosaic", mosaic,"\n")
     
     #load single tree shapefile
     single_tree_sf <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
