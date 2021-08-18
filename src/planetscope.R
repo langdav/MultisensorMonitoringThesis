@@ -1,67 +1,94 @@
+#author: David Langenohl
+#last modified: 17.08.2021
+#description: calculate NDVI values from Planetscope images
+#NOTE: blue = 1, green = 2, red = 3, nir = 4
+
 rm(list = ls())
 library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 library(raster);library(rgeos);library(rgdal);library(lidR);library(sf)
 
-## load data
-# phenoclasses
+## list available files
+files_planetscope <- list.files("data/satellite_data/planetscope/",pattern = "SR_clip.tif")
+
+## calculate ndvi for all trees
+ndvi_all <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
+
+for(file in files_planetscope){
+  tmp_stack <- stack(paste0("data/satellite_data/planetscope/", file))
+  
+  load("data/trees.RData")
+  trees$tree_id <- as.character(trees$tree_id)
+  trees <- trees[c(1:50),] #reduce to trees with a budburst record
+  
+  for(i in 1:nrow(trees)){
+    cat("Processing", trees$tree_id[i], "in file", file,"\n")
+    
+    #load single tree shapefile
+    single_tree_sf <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
+    
+    #extract green, red and NIR values for single tree
+    green <- raster::extract(tmp_stack[[2]], single_tree_sf, na.rm = T)
+    red <- raster::extract(tmp_stack[[3]], single_tree_sf, na.rm = T)
+    nir <- raster::extract(tmp_stack[[4]], single_tree_sf, na.rm = T)
+    
+    #calculate NDVI = (nir-red)/(nir+red)
+    ndvi <- (nir-red)/(nir+red)
+    
+    #create output data frame
+    ndvi_all <- rbind(ndvi_all, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
+                                           date=rep(as.Date(substr(file, 1, 8), "%Y%m%d"), length(ndvi)),
+                                           ndvi = ndvi))
+    
+  }
+}
+
+#merge with phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-# trees
-# trees <- readRDS("data/trees.RDS")
-load("data/trees_all.RData")
-trees <- st_transform(trees, 25832)
-trees$tree_id <- as.character(trees$tree_id)
-#trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
-trees <- trees[c(1:50),] #reduce to trees with a budburst record
+ndvi_all_pheno <- merge(ndvi_all, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
-## create colorblind friendle palette
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#save resulting data frame
+save(ndvi_all_pheno, file = "out/planetscope/ndvi_all_with_phenoclasses_planetscope.RData")
 
-#############################################################
-## create NDVI (or other indices) from planetscope images ##
-###########################################################
-## NDVI for all planetscope files; create raster stack
-files_planetscope <- list.files("data/satellite_data/planetscope/",pattern = "SR_clip.tif")
-for(i in files_planetscope){
-  tmp_stack <- stack(paste0("data/satellite_data/planetscope/", i)) #import data
-  #ndvi <- (tmp_stack[[4]] - tmp_stack[[3]])/(tmp_stack[[4]] + tmp_stack[[3]]) NDVI = (nir-red)/(nir+red)
-  ndvi <- RStoolbox::spectralIndices(tmp_stack, blue = 1, green = 2, red = 3, nir = 4, indices = "NDVI") #calculate NDVI
-  names(ndvi) <- i #rename layer
-  if(!exists("ndvi_st")){
-    ndvi_st <- ndvi
-  } else {
-    ndvi_st <- stack(ndvi_st, ndvi) #stack layers
-  }
-}
-rm(ndvi);rm(tmp_stack);rm(i);rm(files_planetscope)
-
-## crop raster stack to single trees and create long format dataframe 
-dates <- unique(substr(names(ndvi_st),2,9)) #dates of planetscope images
-
-ndvi_long <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
-for(tree in as.character(unique(trees$tree_id))){
-  
-  las_shp <- rgdal::readOGR(paste0("data/single_tree_shapefiles/",tree,".gpkg"))
-  crs(las_shp) <- CRS("+proj=longlat +datum=WGS84")
-  ndvi_st_crop <- crop(ndvi_st, las_shp)
-  for(date in dates){
-    for(i in which(substr(names(ndvi_st_crop), 2, 9) == date)){
-      values <- ndvi_st_crop[[i]]@data@values
-      ndvi_long <- rbind(ndvi_long, data.frame(tree_id=rep(tree, length(values)),
-                                                 date=rep(as.Date(date, format="%Y%m%d"), length(values)),
-                                                 ndvi = values))
+# remove outliers within each trees single-day-NDVI-values, based on the IQR
+for(tree in unique(ndvi_all_pheno$tree_id)){
+  cat("Processing", tree, "\n")
+  days <- unique(ndvi_all_pheno$date[which(ndvi_all_pheno$tree_id == tree)])
+  for(day in 1:length(days)){
+    if(length(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree & 
+                                                   ndvi_all_pheno$date == days[day])])$out) != 0){
+      ndvi_all_pheno <- ndvi_all_pheno[-which(ndvi_all_pheno$tree_id == tree & 
+                                          ndvi_all_pheno$date == days[day] & 
+                                          ndvi_all_pheno$ndvi %in% c(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree & 
+                                                                                                         ndvi_all_pheno$date == days[day])])$out)),]
     }
   }
-  
 }
-rm(ndvi_st_crop);rm(i);rm(date);rm(dates)
-ndvi_long_pheno_planetscope <- merge(ndvi_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-save(ndvi_long_pheno_planetscope, file = "out/planetscope/ndvi_long_format_phenoclasses_planetscope.RData")
 
+#save resulting data frame
+save(ndvi_all_pheno, file = "out/planetscope/outlier_free_ndvi_all_with_phenoclasses_planetscope.RData")
+
+# after removing outliers, calculate daily mean NDVI values
+planetscope_mean_per_tree <- ndvi_all_pheno %>% 
+  group_by(tree_id, date) %>% 
+  summarize(ndvi_mean = mean(ndvi, na.rm = T),
+            ndvi_sd = sd(ndvi, na.rm = T),
+            budburst = unique(budburst),
+            budburst_perc = unique(budburst_perc))
+
+# save resulting data frame
+save(planetscope_mean_per_tree, file = "out/planetscope/outlier_free_daily_ndvi_mean_per_tree_with_phenoclasses_planetscope.RData")
+
+
+
+#####################################################################################################################################
 #################################################################
 ## create boxplots; timeseries of NDVI; grouped by phenophase ##
 ###############################################################
+## create colorblind friendle palette
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 ## boxplots - single tree
 load("out/planetscope/ndvi_long_format_phenoclasses_planetscope.RData")
 ndvi_long <- ndvi_long_pheno_planetscope;rm(ndvi_long_pheno_planetscope)
@@ -116,7 +143,7 @@ ndvi_long <- read.csv("out/planetscope/ndvi_long_format_phenoclasses_planetscape
 ndvi_long$date <- as.Date(ndvi_long$date)
 
 ndvi_sum <- data_summary(ndvi_long, varname="ndvi", 
-                    groupnames=c("tree_id", "date", "budburst", "budburst_perc"))
+                         groupnames=c("tree_id", "date", "budburst", "budburst_perc"))
 
 
 ## ggplots points errorbars - single trees
