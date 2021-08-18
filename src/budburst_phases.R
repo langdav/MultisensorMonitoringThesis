@@ -1,7 +1,13 @@
+#author: David Langenohl
+#last modified: 18.08.2021
+#description: create budburst phases data frame from phenological observations
+#NOTE: A - Buds, dormant, winter aspect; B - Buds swell and get round; C -  Buds have swollen and have burst, D - Buds have burst, leaves are coiled, E - Light foliage, F - Full foliage
+#NOTE: no budburst = A, B, C; budburst = D, E, F
+
 rm(list = ls())
 library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 
-budburst <- read.csv2("data/data_spring_phenology_mof_21.csv")
+budburst <- read.csv2("data/budburst_data/data_spring_phenology_mof_21.csv")
 budburst$date <- as.Date(budburst$Date, format = "%d.%m.%Y")
 budburst <- budburst %>% filter(budburst$Tree_ID %in% unique(budburst$Tree_ID)[-c(1,2)])
 #budburst <- budburst %>% filter(Tree_ID %in% as.character(unique(sen1_results$tree_id)))
