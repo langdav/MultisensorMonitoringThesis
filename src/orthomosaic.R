@@ -65,31 +65,31 @@ for(mosaic in mosaics){
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_all_pheno <- merge(ndvi_all, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
+orthomosaic_ndvi_all <- merge(ndvi_all, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
 #save resulting data frame
-save(ndvi_all_pheno, file = "out/orthomosaic/ndvi_all_with_phenoclasses_orthomosaic.RData")
+save(orthomosaic_ndvi_all, file = "out/orthomosaic/ndvi_all_with_phenoclasses_orthomosaic.RData")
 
 #remove outliers within each trees single-day-NDVI-values, based on the IQR
-for(tree in unique(ndvi_all_pheno$tree_id)){
+for(tree in unique(orthomosaic_ndvi_all$tree_id)){
   cat("Processing", tree, "\n")
-  days <- unique(ndvi_all_pheno$date[which(ndvi_all_pheno$tree_id == tree)])
+  days <- unique(orthomosaic_ndvi_all$date[which(orthomosaic_ndvi_all$tree_id == tree)])
   for(day in 1:length(days)){
-    if(length(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree &
-                                                   ndvi_all_pheno$date == days[day])])$out) != 0){
-      ndvi_all_pheno <- ndvi_all_pheno[-which(ndvi_all_pheno$tree_id == tree &
-                                          ndvi_all_pheno$date == days[day] &
-                                          ndvi_all_pheno$ndvi %in% c(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree &
-                                                                                                         ndvi_all_pheno$date == days[day])])$out)),]
+    if(length(boxplot.stats(orthomosaic_ndvi_all$ndvi[which(orthomosaic_ndvi_all$tree_id == tree &
+                                                   orthomosaic_ndvi_all$date == days[day])])$out) != 0){
+      orthomosaic_ndvi_all <- orthomosaic_ndvi_all[-which(orthomosaic_ndvi_all$tree_id == tree &
+                                          orthomosaic_ndvi_all$date == days[day] &
+                                          orthomosaic_ndvi_all$ndvi %in% c(boxplot.stats(orthomosaic_ndvi_all$ndvi[which(orthomosaic_ndvi_all$tree_id == tree &
+                                                                                                         orthomosaic_ndvi_all$date == days[day])])$out)),]
     }
   }
 }
 
 # save resulting data frame
-save(ndvi_all_pheno, file = "out/orthomosaic/outlier_free_ndvi_all_with_phenoclasses_orthomosaic.RData")
+save(orthomosaic_ndvi_all, file = "out/orthomosaic/outlier_free_ndvi_all_with_phenoclasses_orthomosaic.RData")
 
 # after removing outliers, calculate daily mean NDVI values
-ndvi_per_tree <- ndvi_all_pheno %>% 
+orthomosaic_ndvi_mean_per_tree <- orthomosaic_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   summarize(ndvi_mean = mean(ndvi, na.rm = T),
             ndvi_sd = sd(ndvi, na.rm = T),
@@ -97,5 +97,5 @@ ndvi_per_tree <- ndvi_all_pheno %>%
             budburst_perc = unique(budburst_perc))
 
 # save resulting data frame
-save(ndvi_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
+save(orthomosaic_ndvi_mean_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
 
