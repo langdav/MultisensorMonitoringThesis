@@ -23,22 +23,26 @@ for(mosaic in mosaics){
   
   for(i in 1:nrow(trees)){
     cat("Processing", trees$tree_id[i], "in Orthomosaic", mosaic,"\n")
-    
+
     #load single tree shapefile
     single_tree_sf <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
     
-    #extract green for single tree; do not remove NAs to check if tree lies within the boundaries of the orthomosaic
-    green <- raster::extract(ortho[[2]], single_tree_sf, na.rm = F)
+    # convert Spatial Points to Polygon Shapefile
+    single_tree_sf <- single_tree_sf$geom %>% 
+      st_union() %>% 
+      st_convex_hull()
+    single_tree_sf <- st_as_sf(single_tree_sf)
     
-  
+    #extract green for single tree; do not remove NAs to check if tree lies within the boundaries of the orthomosaic
+    green <- raster::extract(ortho[[2]], single_tree_sf, na.rm = F)[[1]]
     # as in some mosaics not all trees lay within the extent, trees that contain more than 10 percent NA get removed
     if(sum(is.na(green)) < 0.1*length(green)){
       #remove NAs from green (if present)
       green <- na.omit(green)
       
       #extract  red and NIR values for single tree 
-      red <- raster::extract(ortho[[3]], single_tree_sf, na.rm = T)
-      nir <- raster::extract(ortho[[5]], single_tree_sf, na.rm = T)
+      red <- raster::extract(ortho[[3]], single_tree_sf, na.rm = T)[[1]]
+      nir <- raster::extract(ortho[[5]], single_tree_sf, na.rm = T)[[1]]
       
       #calculate NDVI = (nir-red)/(nir+red)
       ndvi <- (nir-red)/(nir+red)
