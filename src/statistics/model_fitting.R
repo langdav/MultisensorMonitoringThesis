@@ -1,5 +1,5 @@
 #author: David Langenohl; based on the work of Dominic Fawcett
-#last modified: 17.08.2021
+#last modified: 19.08.2021
 #description: script to extract NDVI time series per crown and fit logistic function to retrieve phenological start and end of budburst phase
 #NOTE: no models fitted to Sentinel-2 data, as too little data available (3 days)
 
@@ -9,6 +9,7 @@ library(stats);library(rgdal);library(lubridate);library(dplyr);library(RColorBr
 # load data
 load("out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
 aio <- aio_daily_ndvi_means;rm(aio_daily_ndvi_means)
+aio <- aio[-which(aio$date > as.Date("2021-07-01")),] #limit to data before "2021-07-01"
 #aio <- aio[-which(aio$platform == "sentinel2"),] #remove Sentinel-2 data, as there are only 3 dates available which are not enough to fit a proper model
 
 #perform model fitting and extract SOS, MOS and EOS values from fitted model
@@ -53,7 +54,7 @@ for(platform in unique(aio$platform)){
     } else {
       
       # see, if model can be calculated; if not, move on
-      tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=0.6,b=0.01,c=1,d=0)),error=function(e) e, warning=function(w) w)
+      tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=0.6,b=0.01,c=1,d=0)),error=function(e) e, warning=function(w) w)
       
       if(is(tt,'warning')){
         print(paste('warning at platform ',platform, ', tree ',tree))
@@ -70,7 +71,7 @@ for(platform in unique(aio$platform)){
         models[[countvar]] <- list(platform = platform, tree = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
         countvar <- countvar+1
       } else if(is(tt,'error')){
-        print(paste('ferrorail at platform ',platform, ', tree ',tree))
+        print(paste('error at platform ',platform, ', tree ',tree))
         model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
                                                                  tree = tree,
                                                                  SOS = NA,
@@ -136,141 +137,5 @@ for(platform in unique(aio$platform)){
   }
 }
 
-
-## plotting
-# create data frame for budburst percent vlines
-budburst <- read.csv("data/budburst_data/budburst_long.csv")
-buddies_budburst_percent <- NULL
-for(tree in unique(budburst$tree_id)){
-  tmp <- budburst %>% filter(tree_id == tree)
-  percs <- unique(tmp$budburst_perc)
-  for(perc in percs){
-    if(perc == 0){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(head(tmp$date,1)),
-                                                                             last_date = yday(tmp$date[max(which(tmp$budburst_perc==0))]),
-                                                                             budburst_perc = 0))
-    }
-    if(perc == 100){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(tmp$date[min(which(tmp$budburst_perc==100))]),
-                                                                             last_date = yday(tail(tmp$date,1)),
-                                                                             budburst_perc = 100))
-    }
-    if(perc > 0 & perc < 100){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(tmp$date[min(which(tmp$budburst_perc==perc))]),
-                                                                             last_date = yday(tmp$date[max(which(tmp$budburst_perc==perc))]),
-                                                                             budburst_perc = perc))
-    }
-  }
-}
-
-# create data frame for budburst start vline
-buddies_budburs_start <- NULL
-for(tree in unique(budburst$tree_id)){
-  tmp <- budburst %>% filter(tree_id == tree)
-  budburst_date_tmp <- yday(tmp$date[tmp$budburst == T][1])
-  buddies_budburs_start <- rbind(buddies_budburs_start, data.frame(tree_id = tree,
-                                                                   budburst_date = budburst_date_tmp))
-}
-
-# grab a model
-i <- 25
-ndvidat <- models[[i]]$ndvidat
-doylist <- models[[i]]$doylist
-fitmodel <- models[[i]]$model
-platform <- models[[i]]$platform
-tree <- models[[i]]$tree
-
-preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
-predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
-
-stuff <- model_fitting_out[which(model_fitting_out$platform == platform & model_fitting_out$tree == tree),]
-
-# plot with budburst percent
-buddies <- buddies_budburst_percent[buddies_budburst_percent$tree_id == tree,]
-ggplot() +
-  geom_point(aes(doylist, ndvidat)) +
-  geom_line(aes(doylist,predNDVImod)) +
-  geom_vline(xintercept = c(stuff$SOS,stuff$MOS,stuff$EOS), linetype = "dotdash", color = "blue", size = .8) +
-  geom_text(aes(x = c(stuff$SOS,stuff$MOS,stuff$EOS),
-                y = min(ndvidat),
-                label = c("SOS","MOS","EOS"),
-                vjust = 0,
-                angle = 90)) +
-  geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
-  geom_text(aes(x = buddies$first_date[-1],
-                y = max(ndvidat),
-                label = buddies$budburst_perc[-1],
-                vjust = 0,
-                angle = 90)) +
-  theme_light() +
-  xlab("Day of Year") +
-  ylab("NDVI")
-
-# plot with budburst start date
-buddies <- buddies_budburs_start[buddies_budburs_start$tree_id == tree,]
-ggplot() +
-  geom_point(aes(doylist, ndvidat)) +
-  geom_line(aes(doylist,predNDVImod)) +
-  geom_vline(xintercept = c(stuff$SOS,stuff$MOS,stuff$EOS), linetype = "dotdash", color = "blue", size = .8) +
-  geom_text(aes(x = c(stuff$SOS,stuff$MOS,stuff$EOS),
-                y = min(ndvidat),
-                label = c("SOS","MOS","EOS"),
-                vjust = 0,
-                angle = 90)) +
-  geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-  geom_text(aes(x = buddies$budburst_date,
-                y = max(ndvidat),
-                label = "budburst",
-                vjust = 0,
-                angle = 90)) +
-  theme_light() +
-  xlab("Day of Year") +
-  ylab("NDVI")
-
-
-
-
-########
-tree <- "mof_cst_00006"
-entries <- c()
-for(i in 1:length(models)){
-  if(models[[i]][["tree"]] == tree){
-    entries <- c(entries, i)
-  }
-}
-
-buddies <- buddies_budburs_start[buddies_budburs_start$tree_id == tree,]
-par(mfrow = c(2,2))
-for(i in entries){
-  fitmodel <- models[[i]]$model
-  if(!is.na(fitmodel)){
-    ndvidat <- models[[i]]$ndvidat
-    doylist <- models[[i]]$doylist
-    platform <- models[[i]]$platform
-    preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
-    predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
-    stuff <- model_fitting_out[which(model_fitting_out$platform == platform & model_fitting_out$tree == tree),]
-    
-    ggplot() +
-      geom_point(aes(doylist, ndvidat)) +
-      geom_line(aes(doylist,predNDVImod)) +
-      geom_vline(xintercept = c(stuff$SOS,stuff$MOS,stuff$EOS), linetype = "dotdash", color = "blue", size = .8) +
-      geom_text(aes(x = c(stuff$SOS,stuff$MOS,stuff$EOS),
-                    y = min(ndvidat),
-                    label = c("SOS","MOS","EOS"),
-                    vjust = 0,
-                    angle = 90)) +
-      geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-      geom_text(aes(x = buddies$budburst_date,
-                    y = max(ndvidat),
-                    label = "budburst",
-                    vjust = 0,
-                    angle = 90)) +
-      theme_light() +
-      xlab("Day of Year") +
-      ylab("NDVI") 
-  }
-}
+save(model_fitting_out, file = "out/log_function_models/fitted_models_output.RData")
+save(models, file = "out/log_function_models/fitted_models.RData")
