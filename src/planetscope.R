@@ -52,31 +52,31 @@ for(file in files_planetscope){
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_all_pheno <- merge(ndvi_all, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
+planetscope_ndvi_all <- merge(ndvi_all, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
 #save resulting data frame
-save(ndvi_all_pheno, file = "out/planetscope/ndvi_all_with_phenoclasses_planetscope.RData")
+save(planetscope_ndvi_all, file = "out/planetscope/ndvi_all_with_phenoclasses_planetscope.RData")
 
 # remove outliers within each trees single-day-NDVI-values, based on the IQR
-for(tree in unique(ndvi_all_pheno$tree_id)){
+for(tree in unique(planetscope_ndvi_all$tree_id)){
   cat("Processing", tree, "\n")
-  days <- unique(ndvi_all_pheno$date[which(ndvi_all_pheno$tree_id == tree)])
+  days <- unique(planetscope_ndvi_all$date[which(planetscope_ndvi_all$tree_id == tree)])
   for(day in 1:length(days)){
-    if(length(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree & 
-                                                   ndvi_all_pheno$date == days[day])])$out) != 0){
-      ndvi_all_pheno <- ndvi_all_pheno[-which(ndvi_all_pheno$tree_id == tree & 
-                                          ndvi_all_pheno$date == days[day] & 
-                                          ndvi_all_pheno$ndvi %in% c(boxplot.stats(ndvi_all_pheno$ndvi[which(ndvi_all_pheno$tree_id == tree & 
-                                                                                                         ndvi_all_pheno$date == days[day])])$out)),]
+    if(length(boxplot.stats(planetscope_ndvi_all$ndvi[which(planetscope_ndvi_all$tree_id == tree & 
+                                                   planetscope_ndvi_all$date == days[day])])$out) != 0){
+      planetscope_ndvi_all <- planetscope_ndvi_all[-which(planetscope_ndvi_all$tree_id == tree & 
+                                          planetscope_ndvi_all$date == days[day] & 
+                                          planetscope_ndvi_all$ndvi %in% c(boxplot.stats(planetscope_ndvi_all$ndvi[which(planetscope_ndvi_all$tree_id == tree & 
+                                                                                                         planetscope_ndvi_all$date == days[day])])$out)),]
     }
   }
 }
 
 #save resulting data frame
-save(ndvi_all_pheno, file = "out/planetscope/outlier_free_ndvi_all_with_phenoclasses_planetscope.RData")
+save(planetscope_ndvi_all, file = "out/planetscope/outlier_free_ndvi_all_with_phenoclasses_planetscope.RData")
 
 # after removing outliers, calculate daily mean NDVI values
-planetscope_mean_per_tree <- ndvi_all_pheno %>% 
+planetscope_ndvi_mean_per_tree <- planetscope_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   summarize(ndvi_mean = mean(ndvi, na.rm = T),
             ndvi_sd = sd(ndvi, na.rm = T),
@@ -84,7 +84,7 @@ planetscope_mean_per_tree <- ndvi_all_pheno %>%
             budburst_perc = unique(budburst_perc))
 
 # save resulting data frame
-save(planetscope_mean_per_tree, file = "out/planetscope/outlier_free_daily_ndvi_mean_per_tree_with_phenoclasses_planetscope.RData")
+save(planetscope_ndvi_mean_per_tree, file = "out/planetscope/outlier_free_daily_ndvi_mean_per_tree_with_phenoclasses_planetscope.RData")
 
 
 
