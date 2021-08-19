@@ -2,94 +2,80 @@ rm(list = ls())
 library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr)
 library(raster);library(rgeos);library(rgdal);library(lidR);library(sf)
 
-## load data
-# trees <- readRDS("data/trees.RDS")
-load("data/trees_all.RData")
-trees <- st_transform(trees, 25832)
+# list available files
+files_sentinel2 <- list.files("data/satellite_data/sentinel2/",pattern = ".tif")
+
+# load red channel
+red_stack <- stack(paste0("data/satellite_data/sentinel2/", files_sentinel2[9])) #import data; EPSG: 42106
+red_stack <- raster::dropLayer(red_stack, which(substr(names(red_stack),2,5) == "2020")) #drop layers from 2020
+red_stack <- raster::dropLayer(red_stack, 1) #drop layers before the 15.03.
+
+# load nir channel
+nir_stack <- stack(paste0("data/satellite_data/sentinel2/", files_sentinel2[5])) #import data; EPSG: 42106
+nir_stack <- raster::dropLayer(nir_stack, which(substr(names(nir_stack),2,5) == "2020")) #drop layers from 2020
+nir_stack <- raster::dropLayer(nir_stack, 1) #drop layers before the 15.03.
+
+# load 
+load("data/trees.RData")
 trees$tree_id <- as.character(trees$tree_id)
-#trees <- trees %>% filter(tree_id %in% c("mof_cst_00001","mof_cst_00003","mof_cst_00006","mof_cst_00013","mof_cst_00032","mof_cst_00036","mof_cst_00050", "BSF_1"))
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
-## create colorblind friendle palette
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
-############################################################
-## create NDVI (or other indices) from Sentinel-2 images ##
-##########################################################
-## load mof extent shp file to crop sentinel image
-las_shp <- sf::read_sf("data/mof_extent/mof_extent_wgs84.gpkg")
-las_shp <- sf::st_transform(las_shp,  "+proj=laea +lat_0=55 +lon_0=20 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
-
-files_sentinel2 <- list.files("data/satellite_data/sentinel2/",pattern = ".tif")
-substr(files_sentinel2, 32, 34)
-
-## load and crop red channel
-red <- stack(paste0("data/satellite_data/sentinel2/", files_sentinel2[9])) #import data; EPSG: 42106
-red <- raster::dropLayer(red, which(substr(names(red),2,5) == "2020")) #drop layers from 2020
-red <- raster::dropLayer(red, c(1,9:13)) #drop layers beyond the 15.03.-01.06. time period
-red <- raster::dropLayer(red, c(3:5,7)) #drop layers without data, due to clouds
-red <- crop(red, las_shp)
-
-## load and crop nir channel
-nir <- stack(paste0("data/satellite_data/sentinel2/", files_sentinel2[5])) #import data; EPSG: 42106
-nir <- raster::dropLayer(nir, which(substr(names(nir),2,5) == "2020")) #drop layers from 2020
-nir <- raster::dropLayer(nir, c(1,9:13))  #drop layers beyond the 15.03.-01.06. time period
-nir <- raster::dropLayer(nir, c(3:5,7)) #drop layers without data, due to clouds
-nir <- crop(nir, las_shp)
-
-## NDVI of whole mof
-#NDVI = (nir-red)/(nir+red)
-ndvi <- (nir-red)/(nir+red)
-plot(ndvi$X20210320_SEN2A)
-
-## single tree NDVI; raster
-ndvi_all_trees <- list()
+ndvi_all <- data.frame(tree_id = NULL, date = NULL, ndvi = NULL)
 for(i in 1:nrow(trees)){
-  las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg")) #load single tree shapefile
-  #sf::st_crs(las_shp) <- 25832
-  las_shp <- sf::st_transform(las_shp,  "+proj=laea +lat_0=55 +lon_0=20 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0") #reproject to EPSG 42106
-  single_tree_red <- crop(red, las_shp) #crop tile to single tree extent
-  single_tree_nir <- crop(nir, las_shp) #crop tile to single tree extent
-  ndvi <- (single_tree_nir-single_tree_red)/(single_tree_nir+single_tree_red)
-  ndvi_all_trees[[i]] <- ndvi #write single tree NDVIs into list
+  cat("Processing", trees$tree_id[i], "\n")
+  
+  #load single tree shapefile
+  las_shp <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
+  las_shp <- sf::st_transform(las_shp ,st_crs(red_stack)$proj4string) #reproject to projection of Sentinel-2 data (+proj=laea +lat_0=55 +lon_0=20)
+  
+  # convert Spatial Points to Polygon Shapefile
+  las_shp <- las_shp$geom %>% 
+    st_union() %>% 
+    st_convex_hull()
+  las_shp <- st_as_sf(las_shp)
+  
+  #extract red and NIR values for single tree
+  red <- raster::extract(red_stack, las_shp, df = T)
+  nir <- raster::extract(nir_stack, las_shp, df = T)
+  
+  #calculate NDVI = (nir-red)/(nir+red)
+  ndvi <- (nir-red)/(nir+red)
+  
+  #create output data frame
+  tree_id_tmp <- NULL
+  date_tmp <- NULL
+  ndvi_tmp <- NULL
+  for(u in 2:ncol(ndvi)){
+    tree_id_tmp <- c(tree_id_tmp, rep(trees$tree_id[i], nrow(ndvi)))
+    date_tmp <-c(date_tmp, rep(format(as.Date(substr(colnames(ndvi)[u],2,9), "%Y%m%d")), nrow(ndvi)))
+    ndvi_tmp <- c(ndvi_tmp, ndvi[,u])
+  }
+  
+  ndvi_all <- rbind(ndvi_all, data.frame(tree_id=tree_id_tmp,
+                                         date=as.Date(date_tmp),
+                                         ndvi = ndvi_tmp))
 }
-#saveRDS(ndvi_all_trees, "out/sentinel2/ndvi_per_tree_raster.rds")
-#plot(ndvi_all_trees[[24]])
 
-## single tree NDVI; values
-dates <- c(as.Date("2021-03-20"),
-           as.Date("2021-03-30"),
-           as.Date("2021-05-09"))
-ndvi_all_trees_long <- data.frame()
+#remove NA-entries; those data is missing due to clouds
+ndvi_all_cloudless <- na.omit(ndvi_all)
 
-for(i in 1:length(ndvi_all_trees)){
-  values <- c(mean(ndvi_all_trees[[i]]@data@values[,1]),
-              mean(ndvi_all_trees[[i]]@data@values[,2]),
-              mean(ndvi_all_trees[[i]]@data@values[,3]))
-  tmp_ndvi_df <- data.frame(tree_id = rep(trees$tree_id[i], 3),
-                      date = dates,
-                      ndvi = values)
-  ndvi_all_trees_long <- rbind(ndvi_all_trees_long, tmp_ndvi_df)
-}
-
-## merge with phenoclasses
+#merge with phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_long_pheno_sentinel2 <- merge(ndvi_all_trees_long, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-save(ndvi_long_pheno_sentinel2, file = "out/sentinel2/ndvi_long_format_phenoclasses_sentinel2.RData")
+ndvi_all_pheno <- merge(ndvi_all_cloudless, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
-## plotting
-ndvi_sentinel2_phenoclasses %>% 
-  ggplot(aes(x=date, y=ndvi, group=tree_id, color=as.factor(budburst_perc))) +
-  geom_point(size = 3)+
-  geom_line() +
-  #facet_grid(tree_id~., scales = "free_y") +
-  #scale_color_manual(values= cbPalette) +
-  scale_color_viridis(discrete = T) +
-  scale_x_date(date_breaks = "1 week") +
-  xlab("Date") +
-  ylab("NDVI") +
-  labs(color="buds bursted (in %)") +
-  theme_light()
+#save resulting data frame
+save(ndvi_all_pheno, file = "out/sentinel2/ndvi_all_with_sentinel2_planetscope.RData")
+
+#calculate daily mean NDVI values
+ndvi_per_tree <- ndvi_all_pheno %>% 
+  group_by(tree_id, date) %>% 
+  summarize(ndvi_mean = mean(ndvi, na.rm = T),
+            ndvi_sd = sd(ndvi, na.rm = T),
+            budburst = unique(budburst),
+            budburst_perc = unique(budburst_perc))
+
+# save resulting data frame
+save(ndvi_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
 
