@@ -26,10 +26,16 @@ for(file in files_planetscope){
     #load single tree shapefile
     single_tree_sf <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
     
+    # convert Spatial Points to Polygon Shapefile
+    single_tree_sf <- single_tree_sf$geom %>% 
+      st_union() %>% 
+      st_convex_hull()
+    single_tree_sf <- st_as_sf(single_tree_sf)
+    
     #extract green, red and NIR values for single tree
-    green <- raster::extract(tmp_stack[[2]], single_tree_sf, na.rm = T)
-    red <- raster::extract(tmp_stack[[3]], single_tree_sf, na.rm = T)
-    nir <- raster::extract(tmp_stack[[4]], single_tree_sf, na.rm = T)
+    green <- raster::extract(tmp_stack[[2]], single_tree_sf, na.rm = T)[[1]]
+    red <- raster::extract(tmp_stack[[3]], single_tree_sf, na.rm = T)[[1]]
+    nir <- raster::extract(tmp_stack[[4]], single_tree_sf, na.rm = T)[[1]]
     
     #calculate NDVI = (nir-red)/(nir+red)
     ndvi <- (nir-red)/(nir+red)
