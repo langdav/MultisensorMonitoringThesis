@@ -63,31 +63,31 @@ save(tt_long_phenoclasses, file = "data/treetalker/tt_phenoclasses_all_spectra.R
 #NDVI = (nir-red)/(nir+red); nir = 860 nm, red = 650 nm
 tt_pheno$ndvi <- (tt_pheno$AS7263_860-tt_pheno$AS7262_650)/(tt_pheno$AS7263_860+tt_pheno$AS7262_650)
 
-ndvi_long_format_phenoclasses_treetalker <- subset(tt_pheno, select = c(tree_id, date, timestamp, ndvi, budburst, budburst_perc))
+treetalker_ndvi_all <- subset(tt_pheno, select = c(tree_id, date, timestamp, ndvi, budburst, budburst_perc))
 
 # save
-save(ndvi_long_format_phenoclasses_treetalker, file = "out/treetalker/ndvi_all_with_phenoclasses_treetalker.RData")
+save(treetalker_ndvi_all, file = "out/treetalker/ndvi_all_with_phenoclasses_treetalker.RData")
 
 # remove outliers within each trees single-day-NDVI-values, based on the IQR
-for(tree in unique(ndvi_long_format_phenoclasses_treetalker$tree_id)){
+for(tree in unique(treetalker_ndvi_all$tree_id)){
   cat("Processing", tree, "\n")
-  days <- unique(ndvi_long_format_phenoclasses_treetalker$date[which(ndvi_long_format_phenoclasses_treetalker$tree_id == tree)])
+  days <- unique(treetalker_ndvi_all$date[which(treetalker_ndvi_all$tree_id == tree)])
   for(day in 1:length(days)){
-    if(length(boxplot.stats(ndvi_long_format_phenoclasses_treetalker$ndvi[which(ndvi_long_format_phenoclasses_treetalker$tree_id == tree & 
-                                                  ndvi_long_format_phenoclasses_treetalker$date == days[day])])$out) != 0){
-      ndvi_long_format_phenoclasses_treetalker <- ndvi_long_format_phenoclasses_treetalker[-which(ndvi_long_format_phenoclasses_treetalker$tree_id == tree & 
-                                        ndvi_long_format_phenoclasses_treetalker$date == days[day] & 
-                                        ndvi_long_format_phenoclasses_treetalker$ndvi %in% c(boxplot.stats(ndvi_long_format_phenoclasses_treetalker$ndvi[which(ndvi_long_format_phenoclasses_treetalker$tree_id == tree & 
-                                                                                                     ndvi_long_format_phenoclasses_treetalker$date == days[day])])$out)),]
+    if(length(boxplot.stats(treetalker_ndvi_all$ndvi[which(treetalker_ndvi_all$tree_id == tree & 
+                                                  treetalker_ndvi_all$date == days[day])])$out) != 0){
+      treetalker_ndvi_all <- treetalker_ndvi_all[-which(treetalker_ndvi_all$tree_id == tree & 
+                                        treetalker_ndvi_all$date == days[day] & 
+                                        treetalker_ndvi_all$ndvi %in% c(boxplot.stats(treetalker_ndvi_all$ndvi[which(treetalker_ndvi_all$tree_id == tree & 
+                                                                                                     treetalker_ndvi_all$date == days[day])])$out)),]
     }
   }
 }
 
 # save
-save(ndvi_long_format_phenoclasses_treetalker, file = "out/treetalker/outlier_free_ndvi_all_with_phenoclasses_treetalker.RData")
+save(treetalker_ndvi_all, file = "out/treetalker/outlier_free_ndvi_all_with_phenoclasses_treetalker.RData")
 
 # after removing outliers, calculate daily mean NDVI values
-treetalker_daily_mean <- ndvi_long_format_phenoclasses_treetalker %>% 
+treetalker_ndvi_mean_per_tree <- treetalker_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   summarize(ndvi_mean = mean(ndvi, na.rm = T),
             ndvi_sd = sd(ndvi, na.rm = T),
@@ -95,4 +95,4 @@ treetalker_daily_mean <- ndvi_long_format_phenoclasses_treetalker %>%
             budburst_perc = unique(budburst_perc))
 
 # save
-save(treetalker_daily_mean, file = "out/treetalker/outlier_free_ndvi_mean_per_tree_with_phenoclasses_treetalker.RData")
+save(treetalker_ndvi_mean_per_tree, file = "out/treetalker/outlier_free_ndvi_mean_per_tree_with_phenoclasses_treetalker.RData")
