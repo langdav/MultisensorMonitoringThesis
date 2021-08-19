@@ -63,13 +63,13 @@ ndvi_all_cloudless <- na.omit(ndvi_all)
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-ndvi_all_pheno <- merge(ndvi_all_cloudless, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
+sen2_ndvi_all <- merge(ndvi_all_cloudless, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
 #save resulting data frame
-save(ndvi_all_pheno, file = "out/sentinel2/ndvi_all_with_sentinel2_planetscope.RData")
+save(sen2_ndvi_all, file = "out/sentinel2/ndvi_all_with_sentinel2_sentinel2.RData")
 
 #calculate daily mean NDVI values
-ndvi_per_tree <- ndvi_all_pheno %>% 
+sen2_ndvi_mean_per_tree <- sen2_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   summarize(ndvi_mean = mean(ndvi, na.rm = T),
             ndvi_sd = sd(ndvi, na.rm = T),
@@ -77,5 +77,5 @@ ndvi_per_tree <- ndvi_all_pheno %>%
             budburst_perc = unique(budburst_perc))
 
 # save resulting data frame
-save(ndvi_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
+save(sen2_ndvi_mean_per_tree, file = "out/sentinel2/ndvi_mean_per_tree_with_phenoclasses_sentinel2.RData")
 
