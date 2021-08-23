@@ -40,7 +40,7 @@ for(platform in unique(aio$platform)){
     if(length(ndvidat) == 0){
       print(paste('not data for platform ',platform, ', tree ',tree))
       model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                               tree = tree,
+                                                               tree_id = tree,
                                                                SOS = NA,
                                                                MOS = NA,
                                                                EOS = NA,
@@ -49,7 +49,7 @@ for(platform in unique(aio$platform)){
                                                                warning = F,
                                                                error = F)) #residualSTDerror
       
-      models[[countvar]] <- list(platform = platform, tree = tree, ndvidat = NA, doylist = NA, model = NA)
+      models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = NA, doylist = NA, model = NA)
       countvar <- countvar+1
     } else {
       
@@ -59,7 +59,7 @@ for(platform in unique(aio$platform)){
       if(is(tt,'warning')){
         print(paste('warning at platform ',platform, ', tree ',tree))
         model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                 tree = tree,
+                                                                 tree_id = tree,
                                                                  SOS = NA,
                                                                  MOS = NA,
                                                                  EOS = NA,
@@ -68,12 +68,12 @@ for(platform in unique(aio$platform)){
                                                                  warning = T,
                                                                  error = F)) #residualSTDerror
         
-        models[[countvar]] <- list(platform = platform, tree = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
+        models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
         countvar <- countvar+1
       } else if(is(tt,'error')){
         print(paste('error at platform ',platform, ', tree ',tree))
         model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                 tree = tree,
+                                                                 tree_id = tree,
                                                                  SOS = NA,
                                                                  MOS = NA,
                                                                  EOS = NA,
@@ -82,7 +82,7 @@ for(platform in unique(aio$platform)){
                                                                  warning = F,
                                                                  error = T)) #residualSTDerror
         
-        models[[countvar]] <- list(platform = platform, tree = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
+        models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
         countvar <- countvar+1
       } else {
         # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
@@ -121,7 +121,7 @@ for(platform in unique(aio$platform)){
         EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
         
         model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                 tree = tree,
+                                                                 tree_id = tree,
                                                                  SOS = SOS,
                                                                  MOS = MOS,
                                                                  EOS = EOS,
@@ -130,12 +130,21 @@ for(platform in unique(aio$platform)){
                                                                  warning = F,
                                                                  error = F)) #residualSTDerror
         
-        models[[countvar]] <- list(platform = platform, tree = tree, ndvidat = ndvidat, doylist = doylist, model = fitmodel)
+        models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = fitmodel)
         countvar <- countvar+1
       }
     }
   }
 }
 
+#for each tree, add doy of manually observed budburst
+budburst <- read.csv("data/budburst_data/budburst_long.csv")
+budburst$budburst_obervation_doy <- yday(budburst$date)
+budburst <- budburst[which(budburst$budburst==T),c("tree_id","budburst_obervation_doy","budburst_perc")]
+budburst <- budburst[!duplicated(budburst$tree_id),]
+
+model_fitting_out <- merge(model_fitting_out, budburst, by = "tree_id", all.x =T)
+
+#save results
 save(model_fitting_out, file = "out/log_function_models/fitted_models_output.RData")
 save(models, file = "out/log_function_models/fitted_models.RData")
