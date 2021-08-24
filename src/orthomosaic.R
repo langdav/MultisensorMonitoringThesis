@@ -88,7 +88,7 @@ for(tree in unique(orthomosaic_ndvi_all$tree_id)){
 # save resulting data frame
 save(orthomosaic_ndvi_all, file = "out/orthomosaic/outlier_free_ndvi_all_with_phenoclasses_orthomosaic.RData")
 
-# after removing outliers, calculate daily mean NDVI values
+# after removing outliers, calculate daily mean and median NDVI values
 orthomosaic_ndvi_mean_per_tree <- orthomosaic_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   summarize(ndvi_mean = mean(ndvi, na.rm = T),
@@ -96,6 +96,13 @@ orthomosaic_ndvi_mean_per_tree <- orthomosaic_ndvi_all %>%
             budburst = unique(budburst),
             budburst_perc = unique(budburst_perc))
 
+orthomosaic_ndvi_median_per_tree <- orthomosaic_ndvi_all %>% 
+  group_by(tree_id, date) %>% 
+  dplyr::summarize(ndvi_median = median(ndvi, na.rm = T),
+            budburst = unique(budburst),
+            budburst_perc = unique(budburst_perc))
+
 # save resulting data frame
 save(orthomosaic_ndvi_mean_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
+save(orthomosaic_ndvi_median_per_tree, file = "out/orthomosaic/outlier_free_ndvi_median_per_tree_with_phenoclasses_orthomosaic.RData")
 

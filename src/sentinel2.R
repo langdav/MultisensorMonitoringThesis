@@ -68,14 +68,21 @@ sen2_ndvi_all <- merge(ndvi_all_cloudless, phenoclasses, by = c("tree_id","date"
 #save resulting data frame
 save(sen2_ndvi_all, file = "out/sentinel2/ndvi_all_with_sentinel2_sentinel2.RData")
 
-#calculate daily mean NDVI values
+#calculate daily mean and median (of applicable) NDVI values
 sen2_ndvi_mean_per_tree <- sen2_ndvi_all %>% 
   group_by(tree_id, date) %>% 
-  summarize(ndvi_mean = mean(ndvi, na.rm = T),
+  dplyr::summarize(ndvi_mean = mean(ndvi, na.rm = T),
             ndvi_sd = sd(ndvi, na.rm = T),
+            budburst = unique(budburst),
+            budburst_perc = unique(budburst_perc))
+
+sen2_ndvi_median_per_tree <- sen2_ndvi_all %>% 
+  group_by(tree_id, date) %>% 
+  dplyr::summarize(ndvi_median = median(ndvi, na.rm = T),
             budburst = unique(budburst),
             budburst_perc = unique(budburst_perc))
 
 # save resulting data frame
 save(sen2_ndvi_mean_per_tree, file = "out/sentinel2/ndvi_mean_per_tree_with_phenoclasses_sentinel2.RData")
+save(sen2_ndvi_median_per_tree, file = "out/sentinel2/ndvi_median_per_tree_with_phenoclasses_sentinel2.RData")
 
