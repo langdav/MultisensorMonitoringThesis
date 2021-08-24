@@ -6,7 +6,7 @@
 rm(list = ls())
 library(plyr);library(dplyr);library(rstatix);library(ggpubr)
 
-#load data
+# daily means per tree all-in-one
 load("out/planetscope/outlier_free_daily_ndvi_mean_per_tree_with_phenoclasses_planetscope.RData");planetscope_mean <- as.data.frame(ungroup(planetscope_ndvi_mean_per_tree));rm(planetscope_ndvi_mean_per_tree)
 load("out/sentinel2/ndvi_mean_per_tree_with_phenoclasses_sentinel2.RData");sen2_mean <- as.data.frame(ungroup(sen2_ndvi_mean_per_tree));rm(sen2_ndvi_mean_per_tree)
 load("out/treetalker/outlier_free_ndvi_mean_per_tree_with_phenoclasses_treetalker.RData");treetalker_mean <- as.data.frame(ungroup(treetalker_ndvi_mean_per_tree));rm(treetalker_ndvi_mean_per_tree)
@@ -19,14 +19,24 @@ orthomosaic_mean$platform <- rep("orthomosaic", nrow(orthomosaic_mean))
 
 aio_daily_ndvi_means <- rbind(planetscope_mean, sen2_mean, treetalker_mean, orthomosaic_mean)
 
-# save resulting data frame
 save(aio_daily_ndvi_means, file = "out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
-# =============================================================
 
-# --------------------------------------------------------------------------------------
-# create NDVI means over all trees for each date ---------------------------------------
+# daily medians per tree all-in-one
+load("out/planetscope/outlier_free_daily_ndvi_median_per_tree_with_phenoclasses_planetscope.RData");planetscope_median <- as.data.frame(ungroup(planetscope_ndvi_median_per_tree));rm(planetscope_ndvi_median_per_tree)
+load("out/sentinel2/ndvi_median_per_tree_with_phenoclasses_sentinel2.RData");sen2_median <- as.data.frame(ungroup(sen2_ndvi_median_per_tree));rm(sen2_ndvi_median_per_tree)
+load("out/treetalker/outlier_free_ndvi_median_per_tree_with_phenoclasses_treetalker.RData");treetalker_median <- as.data.frame(ungroup(treetalker_ndvi_median_per_tree));rm(treetalker_ndvi_median_per_tree)
+load("out/orthomosaic/outlier_free_ndvi_median_per_tree_with_phenoclasses_orthomosaic.RData");orthomosaic_median <- as.data.frame(ungroup(orthomosaic_ndvi_median_per_tree));rm(orthomosaic_ndvi_median_per_tree)
 
-# load data
+planetscope_median$platform <- rep("planetscope", nrow(planetscope_median))
+sen2_median$platform <- rep("sentinel2", nrow(sen2_median))
+treetalker_median$platform <- rep("treetalker", nrow(treetalker_median))
+orthomosaic_median$platform <- rep("orthomosaic", nrow(orthomosaic_median))
+
+aio_daily_ndvi_medians <- rbind(planetscope_median, sen2_median, treetalker_median, orthomosaic_median)
+
+save(aio_daily_ndvi_medians, file = "out/all_in_one/aio_daily_ndvi_per_tree_medians.RData")
+
+# daily means over all trees per platform
 load("out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
 aio <- aio_daily_ndvi_means;rm(aio_daily_ndvi_means)
 
