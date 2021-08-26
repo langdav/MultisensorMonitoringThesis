@@ -1,19 +1,31 @@
-############################################################################
-## prepare data ###########################################################
-##########################################################################
-rm(list = ls())
-library(dplyr);library(ggplot2);library(viridis);library(tidyr)
-sen1_results <- readRDS("data/satellite_data/satellite_indices/sentinel1_indices.RDS")
-sen1_results$date <- as.Date(sen1_results$date)
-sen1_results <- sen1_results[,-c(3,4)]
+#author: David Langenohl
+#last modified: 26.08.2021
+#description: Sentinel-1 backscattering data
+#NOTE: sigma = backscattering; values in db 
 
-# phenoclasses
+rm(list = ls())
+library(plyr);library(dplyr);library(ggplot2);library(viridis);library(tidyr);library(lubridate)
+
+load("data/trees.RData")
+trees$tree_id <- as.character(trees$tree_id)
+trees <- trees[c(1:50),] #reduce to trees with a budburst record
+
+load("data/satellite_data/satellite_indices/sentinel1_indices.RData")
+sen1_results <- sen1_res; rm(sen1_res)
+sen1_results <- sen1_results[sen1_results$tree_id %in% trees$tree_id,]
+sen1_results$date <- as.Date(sen1_results$date)
+sen1_results$doy <- lubridate::yday(sen1_results$date)
+sen1_backscatter <- sen1_results[,c(1,2,41,7,8)]
+sen1_backscatter$sigma_ratio <- sen1_backscatter$sigma_vv-sen1_backscatter$sigma_vh #VV/VH; ratio here calculated wih VV-VH, as values already log-transformed
+
+#phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
 
-## merge sen1_results with phenoclasses
-indices_long_pheno_sentinel1 <- merge(sen1_results, phenoclasses, by = c("tree_id","date"), all.x = F, all.y = F) #merge with phenoclasses
-save(indices_long_pheno_sentinel1, file = "out/sentinel1/indices_long_format_phenoclasses_sentinel1.RData")
+#merge sen1_results with phenoclasses
+sen1_backscatter <- merge(sen1_backscatter, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F) #merge with phenoclasses
+save(sen1_backscatter, file = "out/sentinel1/backscatter_all_with_phenoclasses_sentinel1.RData")
+
 
 ##########################################################################################################################################
 ##  create colorblind-friendly palette; can be used with scale_fill_manual(values= cbPalette) or scale_color_manual(values= cbPalette) ##

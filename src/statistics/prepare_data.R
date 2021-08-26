@@ -1,5 +1,5 @@
 #author: David Langenohl
-#last modified: 19.08.2021
+#last modified: 25.08.2021
 #description: create different all-in-one data frames
 #NOTE:
 
@@ -19,7 +19,28 @@ orthomosaic_mean$platform <- rep("orthomosaic", nrow(orthomosaic_mean))
 
 aio_daily_ndvi_means <- rbind(planetscope_mean, sen2_mean, treetalker_mean, orthomosaic_mean)
 
+# daily means over all trees per platform
+aio_all_tree_means <- NULL
+for(platform in unique(aio_daily_ndvi_means$platform)){
+  cat("Processing", platform, "\n")
+  days <- unique(aio_daily_ndvi_means$date[which(aio_daily_ndvi_means$platform == platform)])
+  for(day in 1:length(days)){
+    tmp <- aio_daily_ndvi_means %>% filter(platform == platform) %>% filter(date == days[day])
+    m <- mean(tmp$ndvi_mean, na.rm = T)
+    std <- sd(tmp$ndvi_mean, na.rm = T)
+    bb <- ifelse(any(tmp$budburst)==T, T, F)
+    
+    aio_all_tree_means <- rbind(aio_all_tree_means, data.frame(platform = platform,
+                                                               date = days[day],
+                                                               doi = yday(days[day]),
+                                                               ndvi_mean = m,
+                                                               ndvi_sd = std,
+                                                               budburst = bb))
+  }
+}
+
 save(aio_daily_ndvi_means, file = "out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
+save(aio_all_tree_means, file = "out/all_in_one/aio_daily_ndvi_all_trees_means.RData")
 
 # daily medians per tree all-in-one
 load("out/planetscope/outlier_free_daily_ndvi_median_per_tree_with_phenoclasses_planetscope.RData");planetscope_median <- as.data.frame(ungroup(planetscope_ndvi_median_per_tree));rm(planetscope_ndvi_median_per_tree)
@@ -34,46 +55,27 @@ orthomosaic_median$platform <- rep("orthomosaic", nrow(orthomosaic_median))
 
 aio_daily_ndvi_medians <- rbind(planetscope_median, sen2_median, treetalker_median, orthomosaic_median)
 
-save(aio_daily_ndvi_medians, file = "out/all_in_one/aio_daily_ndvi_per_tree_medians.RData")
-
 # daily means over all trees per platform
-load("out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
-aio <- aio_daily_ndvi_means;rm(aio_daily_ndvi_means)
-
-# detect and remove outliers
-for(platform in unique(aio$platform)){
-  days <- unique(aio$date[which(aio$platform == platform)])
-  for(day in 1:length(days)){
-    if(length(boxplot.stats(aio$ndvi_mean[which(aio$platform == platform & 
-                                                aio$date == days[day])])$out) != 0){
-      aio <- aio[-which(aio$platform == platform & 
-                          aio$date == days[day] & 
-                          aio$ndvi_mean %in% c(boxplot.stats(aio$ndvi_mean[which(aio$platform == platform & 
-                                                                                   aio$date == days[day])])$out)),]
-    }
-  }
-}
-
-# calculate means over all trees
-aio_all_tree_means <- NULL
-for(platform in unique(aio$platform)){
+aio_all_tree_medians <- NULL
+for(platform in unique(aio_daily_ndvi_medians$platform)){
   cat("Processing", platform, "\n")
-  days <- unique(aio$date[which(aio$platform == platform)])
+  days <- unique(aio_daily_ndvi_medians$date[which(aio_daily_ndvi_medians$platform == platform)])
   for(day in 1:length(days)){
-    tmp <- aio[-which(aio$platform == platform & 
-                        aio$date == days[day]),]
-    m <- mean(tmp$ndvi_mean, na.rm = T)
-    std <- sd(tmp$ndvi_mean, na.rm = T)
+    tmp <- aio_daily_ndvi_medians %>% filter(platform == platform) %>% filter(date == days[day])
+    m <- mean(tmp$ndvi_median, na.rm = T)
+    std <- sd(tmp$ndvi_median, na.rm = T)
     bb <- ifelse(any(tmp$budburst)==T, T, F)
     
-    aio_all_tree_means <- rbind(aio_all_tree_means, data.frame(platform = platform,
+    aio_all_tree_medians <- rbind(aio_all_tree_medians, data.frame(platform = platform,
                                                                date = days[day],
+                                                               doi = yday(days[day]),
                                                                ndvi_mean = m,
                                                                ndvi_sd = std,
                                                                budburst = bb))
   }
 }
 
-# save resulting data frame
-save(aio_all_tree_means, file = "out/all_in_one/aio_all_tree_means_per_platform_and_day.RData")
+save(aio_daily_ndvi_medians, file = "out/all_in_one/aio_daily_ndvi_per_tree_medians.RData")
+save(aio_all_tree_medians, file = "out/all_in_one/aio_daily_ndvi_all_trees_medians.RData")
+
 
