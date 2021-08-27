@@ -9,6 +9,13 @@ library(dplyr);library(ggpubr);library(car);library(rstatix)
 #load fitted models and manually observed budburst data
 load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/median_fitted_models_output.RData")
+load("out/log_function_models/sentinel1_fitted_models_output.RData")
+model_fitting_out_sen1$platform <- "sentinel1"
+
+
+#add Sentinel-1 data to the other datasets, to be able to compare them with one another
+model_fitting_out_mean <- rbind(model_fitting_out_mean,model_fitting_out_sen1)
+model_fitting_out_median <- rbind(model_fitting_out_median,model_fitting_out_sen1)
 
 #check for normality within different groups: platform, estimated - platform, observed
 #estimated values; NDVI means
@@ -17,7 +24,7 @@ ggpubr::ggqqplot(model_fitting_out_mean,"SOS", facet.by = "platform")
 for(platform in unique(model_fitting_out_mean$platform)){
   pval <- shapiro.test(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform])$p.value
   print(paste0(platform,": ",pval))
-} #nothing noramlly distributed
+} #nothing normally distributed
 
 #estimated values; NDVI medians
 ggpubr::ggqqplot(model_fitting_out_median,"SOS", facet.by = "platform")
@@ -26,7 +33,6 @@ for(platform in unique(model_fitting_out_median$platform)){
   pval <- shapiro.test(model_fitting_out_median$SOS[model_fitting_out_median$platform==platform])$p.value
   print(paste0(platform,": ",pval))
 } #Planetscope and Orthomosaic normally distributed; Treetalker and Sentinel-2 not normally distributed
-
 
 #observed values
 ggpubr::ggqqplot(model_fitting_out_mean,"budburst_obervation_doy", facet.by = "platform")
@@ -69,24 +75,12 @@ model_fitting_out_mean %>%
   group_by() %>% 
   select(SOS, platform) %>% 
   rstatix::tukey_hsd(SOS ~ platform)
-# orthomosaic - planetscope; not signif.
-# orthomosaic - sentinel2; signif.
-# orthomosaic - treetalker; signif.
-# planetscope - sentinel2; signif.
-# planetscope - treetalker; signif.
-# sentinel2 - treetalker; not signif.
 
 ## Tukey post-hoc test; NDVI median
 model_fitting_out_median %>%
   group_by() %>% 
   select(SOS, platform) %>% 
   rstatix::tukey_hsd(SOS ~ platform)
-# orthomosaic - planetscope; not signif.
-# orthomosaic - sentinel2; signif.
-# orthomosaic - treetalker; signif.
-# planetscope - sentinel2; signif.
-# planetscope - treetalker; signif.
-# sentinel2 - treetalker; not signif.
 
 #Welch-Anova(s) to test, if per-platform estimated values differ from observed values
 welch_anova <- NULL
