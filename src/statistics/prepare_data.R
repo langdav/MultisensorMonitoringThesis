@@ -32,7 +32,7 @@ for(platform in unique(aio_daily_ndvi_means$platform)){
     
     aio_all_tree_means <- rbind(aio_all_tree_means, data.frame(platform = platform,
                                                                date = days[day],
-                                                               doi = yday(days[day]),
+                                                               doy = yday(days[day]),
                                                                ndvi_mean = m,
                                                                ndvi_sd = std,
                                                                budburst = bb))
@@ -68,7 +68,7 @@ for(platform in unique(aio_daily_ndvi_medians$platform)){
     
     aio_all_tree_medians <- rbind(aio_all_tree_medians, data.frame(platform = platform,
                                                                date = days[day],
-                                                               doi = yday(days[day]),
+                                                               doy = yday(days[day]),
                                                                ndvi_mean = m,
                                                                ndvi_sd = std,
                                                                budburst = bb))
@@ -78,4 +78,22 @@ for(platform in unique(aio_daily_ndvi_medians$platform)){
 save(aio_daily_ndvi_medians, file = "out/all_in_one/aio_daily_ndvi_per_tree_medians.RData")
 save(aio_all_tree_medians, file = "out/all_in_one/aio_daily_ndvi_all_trees_medians.RData")
 
+# daily mean backscatter (Sentinel-1) over all trees
+load("out/sentinel1/backscatter_all_with_phenoclasses_sentinel1.RData")
+sen1_all_tree_means <- NULL
+days <- unique(sen1_backscatter$date)
+for(day in 1:length(days)){
+  tmp <- sen1_backscatter %>% filter(date == days[day])
+  m <- mean(tmp$sigma_ratio, na.rm = T)
+  std <- sd(tmp$sigma_ratio, na.rm = T)
+  bb <- ifelse(any(tmp$budburst)==T, T, F)
+  
+  sen1_all_tree_means <- rbind(sen1_all_tree_means, data.frame(platform = "sentinel1",
+                                                             date = days[day],
+                                                             doy = yday(days[day]),
+                                                             sigma_ratio_mean = m,
+                                                             sigma_ratio_sd = std,
+                                                             budburst = bb))
+}
 
+save(sen1_all_tree_means, file = "out/all_in_one/sentinel1_daily_sigma_ratio_all_trees.RData")
