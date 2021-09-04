@@ -1,6 +1,7 @@
 #author: David Langenohl
 #last modified: 17.08.2021
 #description: calculate NDVI values from TreeTalker spectra
+#NOTE: light transmission measured in digital numbers; need to be transformed, using wavelength specific calibration formulas
 #NOTE: NDVI = (nir-red)/(nir+red); nir = 860 nm, red = 650 nm
 
 rm(list = ls())
@@ -9,13 +10,10 @@ library(plyr);library(dplyr);library(ggplot2)
 tt_data <- readRDS("data/TreeTalker/TT_spectraldata.RDS")
 tt_data$AS7263_610 <- as.numeric(tt_data$AS7263_610)
 tt_data$TT_ID <- as.integer(tt_data$TT_ID)
-#head(tt_data)
+tt_data <- tt_data %>% filter(tt_data[,c(5:16)] > 5) #remove entries < 5
 
-## remove entries < 5
-tt_data <- tt_data %>% filter(tt_data[,c(5:16)] > 5)
-
-## convert digital numbers to corrected spectral bands
-# NIR
+#convert digital numbers
+#NIR
 tt_data$AS7263_610 <- -312.45+(1.6699*tt_data$AS7263_610)
 tt_data$AS7263_680 <- -561.56+(1.5199*tt_data$AS7263_680)
 tt_data$AS7263_730 <- -1511.2+(1.6209*tt_data$AS7263_730)
@@ -23,7 +21,7 @@ tt_data$AS7263_760 <- -1012.5+(1.4549*tt_data$AS7263_760)
 tt_data$AS7263_810 <- 91.58+(0.8414*tt_data$AS7263_810)
 tt_data$AS7263_860 <- 3347.88+(0.531*tt_data$AS7263_860)
 
-# visible light
+#visible light
 tt_data$AS7262_450 <- -212.62+(0.4562*tt_data$AS7262_450)
 tt_data$AS7262_500 <- -232.13+(0.6257*tt_data$AS7262_500)
 tt_data$AS7262_550 <- -842.1+(1.0546*tt_data$AS7262_550)
@@ -87,7 +85,6 @@ for(tree in unique(treetalker_ndvi_all$tree_id)){
 save(treetalker_ndvi_all, file = "out/treetalker/outlier_free_ndvi_all_with_phenoclasses_treetalker.RData")
 
 # after removing outliers, calculate daily mean and median NDVI values
-
 treetalker_ndvi_mean_per_tree <- treetalker_ndvi_all %>% 
   group_by(tree_id, date) %>% 
   dplyr::summarize(ndvi_mean = mean(ndvi, na.rm = T),
