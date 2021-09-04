@@ -1,4 +1,4 @@
-#author: David Langenoh
+#author: David Langenohl
 #last modified: 23.08.2021
 #description: derive model performance; test for differences between estimated and observed budburst dates 
 #NOTE:
@@ -44,7 +44,7 @@ for(platform in unique(model_fitting_out_mean$platform)){
 
 #NONE of the data is normally distributed; t-test performance is not allowed
 #Next: test for prerequisites for the performance of an ANOVA
-#1. prerequisite: normal distribution; as shown above, this is NOT given; BUT: as the samples are >25, this should not be problematics
+#1. prerequisite: normal distribution; as shown above, this is NOT given; BUT: as the samples are >25, this should not be problematic
 #2. prerequisite: variance homogenity
 #estimated values; NDVI means
 car::leveneTest(SOS~platform, data = model_fitting_out_mean) # p < 0.05; no Variance homogeneity -> Anova can not be used; use Welch-Anova instead
