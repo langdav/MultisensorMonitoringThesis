@@ -4,7 +4,7 @@
 #NOTE: no models fitted to Sentinel-2 data, as too little data available (3 days)
 
 rm(list = ls())
-library(rgdal);library(dplyr);library(RColorBrewer);library(ggplot2);library(ggpubr)
+library(rgdal);library(dplyr);library(RColorBrewer);library(ggplot2);library(ggpubr);library(lubridate)
 
 #load data
 load("out/log_function_models/mean_fitted_models_output.RData")
@@ -181,7 +181,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, b
       #               angle = 90)) +
       geom_text(aes(x = data_sel$SOS,
                     y = min(ndvidat),
-                    label = "SOS",
+                    label = "predicted",
                     vjust = 0,
                     angle = 90)) +
       geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
@@ -194,7 +194,8 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, b
       ylim(ylim_min, ylim_max) +
       theme_light() +
       xlab("Day of Year") +
-      ylab("NDVI")
+      ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+      ggtitle(paste0(platform_sel,";",tree))
   } else {
     # plot with budburst start date
     buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
@@ -210,20 +211,21 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, b
       #               angle = 90)) +
       geom_text(aes(x = data_sel$SOS,
                     y = min(ndvidat),
-                    label = "SOS",
+                    label = "predicted",
                     vjust = 0,
                     angle = 90)) +
       geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
       geom_text(aes(x = buddies$budburst_date,
                     y = max(ndvidat),
-                    label = "budburst",
+                    label = "OBS",
                     vjust = 0,
                     angle = 90)) +
       xlim(xlim_min, xlim_max) +
       ylim(ylim_min, ylim_max) +
       theme_light() +
       xlab("Day of Year") +
-      ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI"))
+      ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+      ggtitle(paste0(platform_sel,";",tree))
   }
   return(plot_out)
 }
@@ -271,7 +273,7 @@ plot_SOS_whole_forest <- function(platform = "orthomosaic", mean_ndvi_values = T
   doylist <- model_sel$doylist
   fitmodel <- model_sel$model
   platform <- model_sel$platform
-  tree <- model_sel$tree
+  #tree <- model_sel$tree
   preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
   predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
   
@@ -307,20 +309,21 @@ plot_SOS_whole_forest <- function(platform = "orthomosaic", mean_ndvi_values = T
       #               angle = 90)) +
       geom_text(aes(x = data_sel$SOS,
                     y = min(ndvidat),
-                    label = "SOS",
+                    label = "predicted",
                     vjust = 0,
                     angle = 90)) +
       geom_vline(xintercept = budburst_mean_observation, linetype = "longdash", color = "red", size = .5) +
       geom_text(aes(x = budburst_mean_observation,
                     y = max(ndvidat),
-                    label = "budburst",
+                    label = "OBS",
                     vjust = 0,
                     angle = 90)) +
       xlim(xlim_min, xlim_max) +
       ylim(ylim_min, ylim_max) +
       theme_light() +
       xlab("Day of Year") +
-      ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI"))
+      ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+      ggtitle(platform_sel)
 
   return(plot_out)
 }
@@ -334,14 +337,24 @@ plot_SOS(platform = "sentinel1", mean_ndvi_values = T, tree = 1, budburst_percen
 # budbust percent
 plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, budburst_percent = T)
 
-one <- plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, budburst_percent = F)
-two <- plot_SOS(platform = "planetscope", mean_ndvi_values = T, tree = 1, budburst_percent = F)
-three <- plot_SOS(platform = "treetalker", mean_ndvi_values = T, tree = 1, budburst_percent = F)
-four <- plot_SOS(platform = "sentinel2", mean_ndvi_values = T, tree = 1, budburst_percent = F)
-five <- plot_SOS(platform = "sentinel1", mean_ndvi_values = T, tree = 1, budburst_percent = F)
+tree_no <- 2
+one <- plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
+two <- plot_SOS(platform = "planetscope", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
+three <- plot_SOS(platform = "treetalker", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
+four <- plot_SOS(platform = "sentinel2", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
+five <- plot_SOS(platform = "sentinel1", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
 
 ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
 
+
+tree_no <- 30
+one <- plot_SOS(platform = "orthomosaic", mean_ndvi_values = F, tree = tree_no, budburst_percent = F)
+two <- plot_SOS(platform = "planetscope", mean_ndvi_values = F, tree = tree_no, budburst_percent = F)
+three <- plot_SOS(platform = "treetalker", mean_ndvi_values = F, tree = tree_no, budburst_percent = F)
+four <- plot_SOS(platform = "sentinel2", mean_ndvi_values = F, tree = tree_no, budburst_percent = F)
+five <- plot_SOS(platform = "sentinel1", mean_ndvi_values = F, tree = tree_no, budburst_percent = F)
+
+ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
 
 #plot mean budburst date over all trees
 plot_SOS_whole_forest(platform = "sentinel1", mean_ndvi_values = T)
@@ -360,4 +373,3 @@ three <- plot_SOS_whole_forest(platform = "treetalker", mean_ndvi_values = F)
 four <- plot_SOS_whole_forest(platform = "sentinel2", mean_ndvi_values = F)
 five  <- plot_SOS_whole_forest(platform = "sentinel1", mean_ndvi_values = F)
 ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
-
