@@ -1,5 +1,5 @@
 #author: David Langenohl
-#last modified: 23.08.2021
+#last modified: 15.09.2021
 #description: derive model performance; test for differences between estimated and observed budburst dates 
 #NOTE:
 
