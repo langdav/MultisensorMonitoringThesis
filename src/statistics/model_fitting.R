@@ -37,11 +37,18 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
       ntrees = 50
       SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
       
+      #starting values
+      a_start <- 120
+      b_start <- 0.01
+      c_start <- 1
+      d_start <- 0
+      
       #iterate through all trees per platform
       for(tree in unique(aio$tree_id)){
         
         #get doys; as not all trees are present in some of the orthomosaics, the doylist is extracted tree-specific
-        doylist <- sort(yday(unique(platform_data_only$date[platform_data_only$tree_id == tree])))
+        #doylist <- sort(yday(unique(platform_data_only$date[platform_data_only$tree_id == tree])))
+        doylist <- sort(yday(platform_data_only$date[platform_data_only$tree_id == tree]))
         doystart <- head(doylist,1)
         doyend <- tail(doylist,1)
         
@@ -68,7 +75,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
         } else {
           
           # see, if model can be calculated; if not, move on
-          tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=0.6,b=0.01,c=1,d=0)),error=function(e) e, warning=function(w) w)
+          tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
           
           if(is(tt,'warning')){
             print(paste('warning at platform ',platform, ', tree ',tree))
@@ -101,7 +108,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
           } else {
             # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
             # it uses the Levenberg-Marquardt (https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) algorithm instead of Gauss-Newton
-            fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=0.6,b=0.01,c=1,d=0))
+            fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
             
             #plot(ndvidat ~ doylist)
             #curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)
@@ -157,16 +164,16 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
     SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
     
     #starting values
-    a_start <- 5
-    b_start <- 0.5
-    c_start <- 120
+    a_start <- 120
+    b_start <- 0.01
+    c_start <- 5
     d_start <- 5
     
     #iterate through all trees per platform
     for(tree in unique(aio$tree_id)){
       
       #get doys; as not all trees are present in some of the orthomosaics, the doylist is extracted tree-specific
-      doylist <- sort(unique(aio$doy[aio$tree_id == tree]))
+      doylist <- sort(aio$doy[aio$tree_id == tree])
       doystart <- head(doylist,1)
       doyend <- tail(doylist,1)
       
