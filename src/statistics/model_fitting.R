@@ -49,28 +49,24 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
       
       if(platform == "planetscope"){
         a_start <- 120    #date of budburst
-        b_start <- 0.01   #growth rate
-        c_start <- 0.9    #amplitude of increase
+        b_start <- 0.001   #growth rate
+        c_start <- 0.3    #amplitude of increase
         d_start <- 0.5    #lower asymptote
-        
       } else if(platform == "sentinel2"){
         a_start <- 120
-        b_start <- 0.1
-        c_start <- 0.9
+        b_start <- 0.001
+        c_start <- 0.3
         d_start <- 0.5
-        
       } else if(platform == "treetalker"){
         a_start <- 120
-        b_start <- 0.01
+        b_start <- 0.001
         c_start <- 0.8
         d_start <- 0
-        
       } else if(platform == "orthomosaic"){
         a_start <- 120
-        b_start <- 0.1
+        b_start <- 0.001
         c_start <- 0.8
         d_start <- 0
-        
       }
       
       #iterate through all trees per platform
@@ -201,7 +197,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
     
     #starting values
     a_start <- 120
-    b_start <- 0.01
+    b_start <- 0.001
     c_start <- 5
     d_start <- 5
     
