@@ -66,7 +66,7 @@ phenoclasses$date <- as.Date(phenoclasses$date)
 sen2_ndvi_all <- merge(ndvi_all_cloudless, phenoclasses, by = c("tree_id","date"), all.x = T, all.y = F)
 
 #save resulting data frame
-save(sen2_ndvi_all, file = "out/sentinel2/ndvi_all_with_sentinel2_sentinel2.RData")
+save(sen2_ndvi_all, file = "out/sentinel2/outlier_free_ndvi_all_with_phenoclasses_sentinel2.RData")
 
 #calculate daily mean and median (of applicable) NDVI values
 sen2_ndvi_mean_per_tree <- sen2_ndvi_all %>% 
