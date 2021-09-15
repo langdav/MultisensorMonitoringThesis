@@ -42,32 +42,32 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
       SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
       
       #starting values
-      # a_start <- 0.6    #date of budburst
-      # b_start <- 0.01   #growth rate
-      # c_start <- 1    #amplitude of increase
-      # d_start <- 0    #lower asymptote
+      a_start <- 0.6    #date of budburst
+      b_start <- 0.01   #growth rate
+      c_start <- 1    #amplitude of increase
+      d_start <- 0    #lower asymptote
       
-      if(platform == "planetscope"){
-        a_start <- 120    #date of budburst
-        b_start <- 0.001   #growth rate
-        c_start <- 0.3    #amplitude of increase
-        d_start <- 0.5    #lower asymptote
-      } else if(platform == "sentinel2"){
-        a_start <- 120
-        b_start <- 0.001
-        c_start <- 0.3
-        d_start <- 0.5
-      } else if(platform == "treetalker"){
-        a_start <- 120
-        b_start <- 0.001
-        c_start <- 0.8
-        d_start <- 0
-      } else if(platform == "orthomosaic"){
-        a_start <- 120
-        b_start <- 0.001
-        c_start <- 0.8
-        d_start <- 0
-      }
+      # if(platform == "planetscope"){
+      #   a_start <- 120    #date of budburst
+      #   b_start <- 0.001   #growth rate
+      #   c_start <- 0.3    #amplitude of increase
+      #   d_start <- 0.5    #lower asymptote
+      # } else if(platform == "sentinel2"){
+      #   a_start <- 120
+      #   b_start <- 0.001
+      #   c_start <- 0.3
+      #   d_start <- 0.5
+      # } else if(platform == "treetalker"){
+      #   a_start <- 120
+      #   b_start <- 0.001
+      #   c_start <- 0.8
+      #   d_start <- 0
+      # } else if(platform == "orthomosaic"){
+      #   a_start <- 120
+      #   b_start <- 0.001
+      #   c_start <- 0.8
+      #   d_start <- 0
+      # }
       
       #iterate through all trees per platform
       for(tree in unique(aio$tree_id)){
