@@ -332,10 +332,13 @@ plot_SOS_whole_forest <- function(platform = "orthomosaic", mean_ndvi_values = T
 # budbust start only
 plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, budburst_percent = F)
 
-plot_SOS(platform = "sentinel1", mean_ndvi_values = T, tree = 1, budburst_percent = F)
+plot_SOS(platform = "sentinel1", mean_ndvi_values = T, tree = 9, budburst_percent = F)
 
 # budbust percent
-plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = 1, budburst_percent = T)
+for(i in 1:50){
+  
+}
+plot_SOS(platform = "treetalker", mean_ndvi_values = T, tree = 40, budburst_percent = F)
 
 tree_no <- 2
 one <- plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, tree = tree_no, budburst_percent = F)
