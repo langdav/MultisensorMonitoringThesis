@@ -8,6 +8,10 @@ rm(list = ls())
 library(stats);library(rgdal);library(lubridate);library(dplyr);library(RColorBrewer);library(ggplot2);library(minpack.lm) #minpack.lm isneeded for the use of minpack.lm::nlsLM()
 
 #load data
+load("out/all_in_one/aio_daily_ndvi_all.RData")
+aio_all <- aio_daily_ndvi_all;rm(aio_daily_ndvi_all)
+aio_all <- aio_all[-which(aio_all$date > as.Date("2021-07-01")),] #limit to data before "2021-07-01"
+
 load("out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
 aio_mean <- aio_daily_ndvi_means;rm(aio_daily_ndvi_means)
 aio_mean <- aio_mean[-which(aio_mean$date > as.Date("2021-07-01")),] #limit to data before "2021-07-01"
@@ -19,7 +23,7 @@ aio_median <- aio_median[-which(aio_median$date > as.Date("2021-07-01")),] #limi
 load("out/sentinel1/backscatter_all_with_phenoclasses_sentinel1.RData")
 
 #model fitting function
-model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, sentinel1 = F){
+model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_models = F, sentinel1 = F){
   #perform model fitting and extract SOS, MOS and EOS values from fitted model
   model_fitting_out <- NULL
   models <- list()
@@ -38,10 +42,36 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
       SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
       
       #starting values
-      a_start <- 120
-      b_start <- 0.01
-      c_start <- 1
-      d_start <- 0
+      # a_start <- 0.6    #date of budburst
+      # b_start <- 0.01   #growth rate
+      # c_start <- 1    #amplitude of increase
+      # d_start <- 0    #lower asymptote
+      
+      if(platform == "planetscope"){
+        a_start <- 120    #date of budburst
+        b_start <- 0.01   #growth rate
+        c_start <- 0.9    #amplitude of increase
+        d_start <- 0.5    #lower asymptote
+        
+      } else if(platform == "sentinel2"){
+        a_start <- 120
+        b_start <- 0.1
+        c_start <- 0.9
+        d_start <- 0.5
+        
+      } else if(platform == "treetalker"){
+        a_start <- 120
+        b_start <- 0.01
+        c_start <- 0.8
+        d_start <- 0
+        
+      } else if(platform == "orthomosaic"){
+        a_start <- 120
+        b_start <- 0.1
+        c_start <- 0.8
+        d_start <- 0
+        
+      }
       
       #iterate through all trees per platform
       for(tree in unique(aio$tree_id)){
@@ -52,10 +82,16 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
         doystart <- head(doylist,1)
         doyend <- tail(doylist,1)
         
-        #ndvidat <- unlist(classNDVIvals[which(classNDVIvals$tree_id == tree),])
-        ifelse(mean == T,
-               ndvidat <- platform_data_only$ndvi_mean[which(platform_data_only$tree_id == tree)],
-               ndvidat <- platform_data_only$ndvi_median[which(platform_data_only$tree_id == tree)])
+        if(mean == T & median == F){
+          ndvidat <- platform_data_only$ndvi_mean[which(platform_data_only$tree_id == tree)]
+        } else if(mean == F & median == T){
+          ndvidat <- platform_data_only$ndvi_median[which(platform_data_only$tree_id == tree)]
+        } else {
+          ndvidat <- platform_data_only$ndvi[which(platform_data_only$tree_id == tree)]
+        }
+        # ifelse(mean == T,
+        #        ndvidat <- platform_data_only$ndvi_mean[which(platform_data_only$tree_id == tree)],
+        #        ndvidat <- platform_data_only$ndvi_median[which(platform_data_only$tree_id == tree)])
         
         
         if(length(ndvidat) == 0){
@@ -92,7 +128,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
             models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
             countvar <- countvar+1
           } else if(is(tt,'error')){
-            print(paste('error at platform ',platform, ', tree ',tree))
+            print(paste0('error at platform ',platform, ', tree ',tree,', ',tt))
             model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
                                                                      tree_id = tree,
                                                                      SOS = NA,
@@ -281,10 +317,13 @@ model_fitting <- function(dataset = aio_mean, mean = T, return_models = F, senti
   ifelse(return_models == T,return(models),return(model_fitting_out))
 }
 
-model_fitting_out_mean <- model_fitting(dataset = aio_mean, mean = T, return_models = F, sentinel1 = F)
-model_fitting_out_median <- model_fitting(dataset = aio_median, mean = F, return_models = F, sentinel1 = F)
-models_mean <- model_fitting(dataset = aio_mean, mean = T, return_models = T, sentinel1 = F)
-models_median <- model_fitting(dataset = aio_median, mean = F, return_models = T, sentinel1 = F)
+model_fitting_out_all <- model_fitting(dataset = aio_all, mean = F, median = F, return_models = F, sentinel1 = F)
+model_fitting_out_mean <- model_fitting(dataset = aio_mean, mean = T, median = F, return_models = F, sentinel1 = F)
+model_fitting_out_median <- model_fitting(dataset = aio_median, mean = F, median = T,return_models = F, sentinel1 = F)
+
+models_all <- model_fitting(dataset = aio_all, mean = F, median = F, return_models = T, sentinel1 = F)
+models_mean <- model_fitting(dataset = aio_mean, mean = T, median = F, return_models = T, sentinel1 = F)
+models_median <- model_fitting(dataset = aio_median, mean = F, median = T, return_models = T, sentinel1 = F)
 
 model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = F, sentinel1 = T)
 models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = T, sentinel1 = T)
@@ -295,14 +334,18 @@ budburst$budburst_obervation_doy <- yday(budburst$date)
 budburst <- budburst[which(budburst$budburst==T),c("tree_id","budburst_obervation_doy","budburst_perc")]
 budburst <- budburst[!duplicated(budburst$tree_id),]
 
+model_fitting_out_all <- merge(model_fitting_out_all, budburst, by = "tree_id", all.x =T)
 model_fitting_out_mean <- merge(model_fitting_out_mean, budburst, by = "tree_id", all.x =T)
 model_fitting_out_median <- merge(model_fitting_out_median, budburst, by = "tree_id", all.x =T)
 model_fitting_out_sen1 <- merge(model_fitting_out_sen1, budburst, by = "tree_id", all.x =T)
 
 #save results
+save(model_fitting_out_all, file = "out/log_function_models/all_values_fitted_models_output.RData")
 save(model_fitting_out_mean, file = "out/log_function_models/mean_fitted_models_output.RData")
 save(model_fitting_out_median, file = "out/log_function_models/median_fitted_models_output.RData")
 save(model_fitting_out_sen1, file = "out/log_function_models/sentinel1_fitted_models_output.RData")
+
+save(models_all, file = "out/log_function_models/all_values_fitted_models.RData")
 save(models_mean, file = "out/log_function_models/mean_fitted_models.RData")
 save(models_median, file = "out/log_function_models/median_fitted_models.RData")
 save(models_sen1, file = "out/log_function_models/sentinel1_fitted_models.RData")
