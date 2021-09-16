@@ -18,6 +18,16 @@ sen1_results$doy <- lubridate::yday(sen1_results$date)
 sen1_backscatter <- sen1_results[,c(1,2,41,7,8)]
 sen1_backscatter$sigma_ratio <- sen1_backscatter$sigma_vv-sen1_backscatter$sigma_vh #VV/VH; ratio here calculated wih VV-VH, as values already log-transformed
 
+#remove outliers on per-tree base (run multiple times, if necessary)
+for(tree in unique(sen1_backscatter$tree_id)){
+  cat("Processing", tree, "\n")
+  if(length(boxplot.stats(sen1_backscatter$sigma_ratio[which(sen1_backscatter$tree_id == tree)])$out) != 0){
+    sen1_backscatter <- sen1_backscatter[-which(sen1_backscatter$tree_id == tree &
+                                                  sen1_backscatter$sigma_ratio %in% c(boxplot.stats(sen1_backscatter$sigma_ratio[which(sen1_backscatter$tree_id == tree)])$out)),]
+    
+  }
+}
+
 #phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
 phenoclasses$date <- as.Date(phenoclasses$date)
