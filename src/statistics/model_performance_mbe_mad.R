@@ -76,5 +76,22 @@ lin_performance <- rbind(lin_performance, data.frame(platform = "sentinel1",
                                                      slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[8],
                                                      intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[7]))
 
+par(mfrow = c(3,5))
+
+for(platform in c(unique(model_fitting_out_mean$platform))){
+  plot(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,])
+  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))
+}
+
+for(platform in c(unique(model_fitting_out_median$platform))){
+  plot(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,])
+  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))
+}
+
+for(platform in c(unique(model_fitting_out_all$platform))){
+  plot(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,])
+  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))
+}
+
 plot(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",])
 abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",]))
