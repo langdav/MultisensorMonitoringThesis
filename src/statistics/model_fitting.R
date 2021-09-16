@@ -182,10 +182,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
             
             #first derivation: slope
-            firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
+            # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
+            firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2)
             
             #second derivation: curvature
-            secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
+            # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
+            secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2))
             curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
             
             #change of curvature
@@ -304,10 +306,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
           predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
           
           #first derivation: slope
-          firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
+          # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
+          firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2)
           
           #second derivation: curvature
-          secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
+          # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
+          secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2))
           curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
           
           #change of curvature
