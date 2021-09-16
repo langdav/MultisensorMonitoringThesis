@@ -352,11 +352,11 @@ model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, re
 models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, median = F,return_models = T, sentinel1 = T)
 
 #look at some of those models
-i <- 45
+i <- 15
 ndvidat <- models_mean[[i]]$ndvidat;doylist <- models_mean[[i]]$doylist;fitmodel <- models_mean[[i]]$model;plot(ndvidat ~ doylist, main = models_mean[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
 
 #sentinel-1
-i <- 2
+i <- 4
 ndvidat <- models_sen1[[i]]$ndvidat;doylist <- models_sen1[[i]]$doylist;fitmodel <- models_sen1[[i]]$model;plot(ndvidat ~ doylist, main = models_sen1[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
 
 
