@@ -42,24 +42,24 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
       SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
       
       #starting values
-      a_start <- 0.6    #date of budburst
-      b_start <- 0.01   #growth rate
-      c_start <- 1    #amplitude of increase
-      d_start <- 0    #lower asymptote
+      # a_start <- 0.6    #date of budburst
+      # b_start <- 0.01   #growth rate
+      # c_start <- 1    #amplitude of increase
+      # d_start <- 0    #lower asymptote
       
       # if(platform == "planetscope"){
-      #   a_start <- 120    #date of budburst
-      #   b_start <- 0.001   #growth rate
-      #   c_start <- 0.3    #amplitude of increase
+      #   a_start <- 0.6    #date of budburst
+      #   b_start <- 0.01   #growth rate
+      #   c_start <- 0.5    #amplitude of increase
       #   d_start <- 0.5    #lower asymptote
       # } else if(platform == "sentinel2"){
       #   a_start <- 120
-      #   b_start <- 0.001
+      #   b_start <- 0.01
       #   c_start <- 0.3
       #   d_start <- 0.5
       # } else if(platform == "treetalker"){
       #   a_start <- 120
-      #   b_start <- 0.001
+      #   b_start <- 0.01
       #   c_start <- 0.8
       #   d_start <- 0
       # } else if(platform == "orthomosaic"){
@@ -68,6 +68,29 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
       #   c_start <- 0.8
       #   d_start <- 0
       # }
+      
+      
+      if(platform == "planetscope"){
+        a_start <- 0.5    #lower asymptote
+        b_start <- 1      #amplitude of NDVI
+        c_start <- 0.7    #inflection point
+        d_start <- 0.01   #growth rate
+      } else if(platform == "sentinel2"){
+        a_start <- 0.5    #lower asymptote
+        b_start <- 1      #amplitude of NDVI
+        c_start <- 0.7    #inflection point
+        d_start <- 0.01   #growth rate
+      } else if(platform == "treetalker"){
+        a_start <- 0      #lower asymptote
+        b_start <- 1      #amplitude of NDVI
+        c_start <- 0.7    #inflection point
+        d_start <- 0.01   #growth rate
+      } else if(platform == "orthomosaic"){
+        a_start <- 0      #lower asymptote
+        b_start <- 1      #amplitude of NDVI
+        c_start <- 0.7    #inflection point
+        d_start <- 0.01   #growth rate
+      }
       
       #iterate through all trees per platform
       for(tree in unique(aio$tree_id)){
@@ -107,7 +130,8 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
         } else {
           
           # see, if model can be calculated; if not, move on
-          tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
+          # tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
+          tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
           
           if(is(tt,'warning')){
             print(paste('warning at platform ',platform, ', tree ',tree))
@@ -140,7 +164,8 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
           } else {
             # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
             # it uses the Levenberg-Marquardt (https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) algorithm instead of Gauss-Newton
-            fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
+            # fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
+            fitmodel <- minpack.lm::nlsLM(ndvidat ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
             
             #plot(ndvidat ~ doylist)
             #curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)
@@ -196,10 +221,10 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
     SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
     
     #starting values
-    a_start <- 120
-    b_start <- 0.001
-    c_start <- 5
-    d_start <- 5
+    a_start <- 5    #lower asymptote
+    b_start <- 10      #amplitude of backscatter
+    c_start <- 6    #inflection point
+    d_start <- 0.01   #growth rate
     
     #iterate through all trees per platform
     for(tree in unique(aio$tree_id)){
@@ -227,7 +252,8 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
         countvar <- countvar+1
       } else {
         # see, if model can be calculated; if not, move on
-        tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
+        # tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
+        tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
         
         if(is(tt,'warning')){
           print(paste('warning at platform ',"sentinel1", ', tree ',tree))
@@ -260,7 +286,8 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
         } else {
           # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
           # it uses the Levenberg-Marquardt (https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) algorithm instead of Gauss-Newton
-          fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
+          # fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
+          fitmodel <- minpack.lm::nlsLM(ndvidat ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
           
           #plot(ndvidat ~ doylist)
           #curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)
@@ -322,7 +349,17 @@ models_mean <- model_fitting(dataset = aio_mean, mean = T, median = F, return_mo
 models_median <- model_fitting(dataset = aio_median, mean = F, median = T, return_models = T, sentinel1 = F)
 
 model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = F, sentinel1 = T)
-models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = T, sentinel1 = T)
+models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, median = F,return_models = T, sentinel1 = T)
+
+#look at some of those models
+i <- 45
+ndvidat <- models_mean[[i]]$ndvidat;doylist <- models_mean[[i]]$doylist;fitmodel <- models_mean[[i]]$model;plot(ndvidat ~ doylist, main = models_mean[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
+
+#sentinel-1
+i <- 2
+ndvidat <- models_sen1[[i]]$ndvidat;doylist <- models_sen1[[i]]$doylist;fitmodel <- models_sen1[[i]]$model;plot(ndvidat ~ doylist, main = models_sen1[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
+
+
 
 #for each tree, add doy of manually observed budburst
 budburst <- read.csv("data/budburst_data/budburst_long.csv")
