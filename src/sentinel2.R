@@ -56,8 +56,18 @@ for(i in 1:nrow(trees)){
                                          ndvi = ndvi_tmp))
 }
 
-#remove NA-entries; those data is missing due to clouds
+#remove NA-entries; those data are missing due to clouds
 ndvi_all_cloudless <- na.omit(ndvi_all)
+
+#remove outliers on per-tree base (run multiple times, if necessary)
+for(tree in unique(ndvi_all_cloudless$tree_id)){
+  cat("Processing", tree, "\n")
+  if(length(boxplot.stats(ndvi_all_cloudless$ndvi[which(ndvi_all_cloudless$tree_id == tree)])$out) != 0){
+    ndvi_all_cloudless <- ndvi_all_cloudless[-which(ndvi_all_cloudless$tree_id == tree &
+                                                  ndvi_all_cloudless$ndvi %in% c(boxplot.stats(ndvi_all_cloudless$ndvi[which(ndvi_all_cloudless$tree_id == tree)])$out)),]
+    
+  }
+}
 
 #merge with phenoclasses
 phenoclasses <- read.csv("data/budburst_data/budburst_long.csv")
