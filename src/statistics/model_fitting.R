@@ -42,33 +42,27 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
       SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
       
       #starting values
-      # a_start <- 0.6    #date of budburst
-      # b_start <- 0.01   #growth rate
-      # c_start <- 1    #amplitude of increase
-      # d_start <- 0    #lower asymptote
-      
       # if(platform == "planetscope"){
-      #   a_start <- 0.6    #date of budburst
+      #   a_start <- 0.7    #inflection point
       #   b_start <- 0.01   #growth rate
-      #   c_start <- 0.5    #amplitude of increase
+      #   c_start <- 1      #amplitude of increase
       #   d_start <- 0.5    #lower asymptote
       # } else if(platform == "sentinel2"){
-      #   a_start <- 120
+      #   a_start <- 0.7
       #   b_start <- 0.01
-      #   c_start <- 0.3
+      #   c_start <- 1
       #   d_start <- 0.5
       # } else if(platform == "treetalker"){
-      #   a_start <- 120
+      #   a_start <- 0.7
       #   b_start <- 0.01
-      #   c_start <- 0.8
+      #   c_start <- 1
       #   d_start <- 0
       # } else if(platform == "orthomosaic"){
       #   a_start <- 120
       #   b_start <- 0.001
-      #   c_start <- 0.8
+      #   c_start <- 1
       #   d_start <- 0
       # }
-      
       
       if(platform == "planetscope"){
         a_start <- 0.5    #lower asymptote
@@ -223,10 +217,15 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
     SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
     
     #starting values
+    # a_start <- 6    #inflection point
+    # b_start <- 0.01   #growth rate
+    # c_start <- 10      #amplitude of increase
+    # d_start <- 5    #lower asymptote
+    
     a_start <- 5    #lower asymptote
-    b_start <- 10      #amplitude of backscatter
+    b_start <- 10   #amplitude of backscatter
     c_start <- 6    #inflection point
-    d_start <- 0.01   #growth rate
+    d_start <- 0.01 #growth rate
     
     #iterate through all trees per platform
     for(tree in unique(aio$tree_id)){
@@ -356,7 +355,7 @@ model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, re
 models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, median = F,return_models = T, sentinel1 = T)
 
 #look at some of those models
-i <- 15
+i <- 165
 ndvidat <- models_mean[[i]]$ndvidat;doylist <- models_mean[[i]]$doylist;fitmodel <- models_mean[[i]]$model;plot(ndvidat ~ doylist, main = models_mean[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
 
 #sentinel-1
