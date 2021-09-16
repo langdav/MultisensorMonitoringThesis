@@ -4,7 +4,7 @@
 #NOTE:
 
 rm(list = ls())
-library(plyr);library(dplyr);library(rstatix);library(ggpubr)
+library(plyr);library(dplyr);library(rstatix);library(ggpubr);library(lubridate)
 
 # daily NDVI values (all values; not per-tree mean/median!)
 load("out/planetscope/outlier_free_ndvi_all_with_phenoclasses_planetscope.RData")
