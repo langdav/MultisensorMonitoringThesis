@@ -419,39 +419,34 @@ ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
 
 
 
-################################################################################
+#create plot of each platforms deviation from mean budburst date (with errorbars)
+# mean observed BB date
+mean_obs <- mean(buddies_budburst_start$budburst_date, na.rm = T)
+sd_obs <- sd(buddies_budburst_start$budburst_date, na.rm = T)
 
-means_sen1 <- data.frame(platform = "sentinel1",
-                         bb_mean = mean(model_fitting_out_sen1$SOS, na.rm = T)-124,
-                         bb_sd = sd(model_fitting_out_sen1$SOS, na.rm = T),
-                         ndvi = NA)
-
+# mean predicted dates per platform
 means_all <- NULL  
 for(platform in unique(model_fitting_out_mean$platform)){
   tmp <- model_fitting_out_mean[which(model_fitting_out_mean$platform == platform),]
-  m <- mean(tmp$SOS-124, na.rm = T)
+  m <- mean(tmp$SOS-mean_obs, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
                                            bb_mean = m,
                                            bb_sd = std,
                                            ndvi = "mean"))
-}
-
-for(platform in unique(model_fitting_out_median$platform)){
+  
   tmp <- model_fitting_out_median[which(model_fitting_out_median$platform == platform),]
-  m <- mean(tmp$SOS-124, na.rm = T)
+  m <- mean(tmp$SOS-mean_obs, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
                                            bb_mean = m,
                                            bb_sd = std,
                                            ndvi = "median"))
-}
-
-for(platform in unique(model_fitting_out_all$platform)){
+  
   tmp <- model_fitting_out_all[which(model_fitting_out_all$platform == platform),]
-  m <- mean(tmp$SOS-124, na.rm = T)
+  m <- mean(tmp$SOS-mean_obs, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
@@ -459,38 +454,28 @@ for(platform in unique(model_fitting_out_all$platform)){
                                            bb_sd = std,
                                            ndvi = "all_values"))
 }
+means_sen1 <- data.frame(platform = "sentinel1",
+                         bb_mean = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs,
+                         bb_sd = sd(model_fitting_out_sen1$SOS, na.rm = T),
+                         ndvi = "all_values")
 means_all <- rbind(means_all, means_sen1)
 
+mean_obs <- mean(buddies_budburst_start$budburst_date, na.rm = T)
+sd_obs <- sd(buddies_budburst_start$budburst_date, na.rm = T)
 
-
-ggplot(data = means_all, aes(x = bb_mean, y = platform, colour = ndvi)) + 
-  geom_point() +
-  geom_errorbarh(aes(xmin=bb_mean-bb_sd, xmax=bb_mean+bb_sd)) +
-  geom_vline(xintercept = 0, linetype = "longdash", color = "red", size = .5) +
-  facet_grid()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+means_all %>% 
+  ggplot(aes(x = bb_mean, y = platform, color = platform)) + 
+  geom_point(size = 2.5) +
+  geom_errorbarh(aes(xmin=bb_mean-bb_sd, xmax=bb_mean+bb_sd), height = .4) +
+  geom_vline(xintercept = 0, linetype = "longdash", color = "black", size = .5) +
+  geom_vline(xintercept = sd_obs, linetype = "dotted", color = "black", size = .5) +
+  geom_vline(xintercept = 0-sd_obs, linetype = "dotted", color = "black", size = .5) +
+  facet_grid(ndvi ~ .) +
+  theme_light() +
+  xlab("Deviation from observed date") +
+  ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+  ggtitle("per-platform deviation (in day) from observed mean budbust date")
+  
 
 
 # #plotting function; all trees and single platform
