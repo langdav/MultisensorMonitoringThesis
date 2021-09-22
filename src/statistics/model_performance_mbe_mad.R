@@ -65,7 +65,7 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                                        slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[8],
                                                        intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[7]))
   lin_performance <- rbind(lin_performance, data.frame(platform = platform,
-                                                       ndvi_mean_median = "median",
+                                                       ndvi_mean_median = "all_values",
                                                        r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$r.squared,
                                                        slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[8],
                                                        intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[7]))
@@ -75,6 +75,8 @@ lin_performance <- rbind(lin_performance, data.frame(platform = "sentinel1",
                                                      r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$r.squared,
                                                      slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[8],
                                                      intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[7]))
+
+lin_performance$r_squared <- format(round(lin_performance$r_squared,3), scientific=F)
 
 # manually check for distribution of points in the fitted R² model; outliers?; few points?
 par(mfrow = c(3,5))
@@ -96,3 +98,32 @@ for(platform in c(unique(model_fitting_out_all$platform))){
 
 plot(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",])
 abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",]))
+
+
+#find earliest budburst, latest budburst and total number of detected budbursts per platform
+platform <- "orthomosaic"
+
+min(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
+max(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
+length(which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)])==F))
+
+min(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)], na.rm = T)
+max(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)], na.rm = T)
+length(which(is.na(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)])==F))
+
+min(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)], na.rm = T)
+max(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)], na.rm = T)
+length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)])==F))
+
+# Sentinel-1
+min(model_fitting_out_sen1$SOS, na.rm = T)
+max(model_fitting_out_sen1$SOS, na.rm = T)
+length(which(is.na(model_fitting_out_sen1$SOS)==F))
+
+
+
+
+
+
+which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == "treetalker")])==T)
+model_fitting_out_mean[which(model_fitting_out_mean$platform == "treetalker"),]
