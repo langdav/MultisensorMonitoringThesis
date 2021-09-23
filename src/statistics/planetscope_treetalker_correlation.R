@@ -24,9 +24,9 @@ aio_median <- aio_median[which(aio_median$platform %in% c("planetscope","treetal
 
 # plotting; mean NDVI
 ggplot(aio_mean[which(aio_mean$tree_id %in% unique(aio_mean$tree_id)[1:5]),], aes(x=date, y=ndvi_mean, colour=platform)) +
-  geom_errorbar(aes(ymin=ndvi_mean-ndvi_sd, ymax=ndvi_mean+ndvi_sd), width=.1) +
+  geom_errorbar(aes(ymin=ndvi_mean-ndvi_sd, ymax=ndvi_mean+ndvi_sd), width=1) +
   geom_point() +
-  geom_smooth(formula = y ~ x) +
+  geom_smooth(formula = y ~ x, method = "lm") +
   facet_grid(tree_id~., scales = "free_y")
 
 
