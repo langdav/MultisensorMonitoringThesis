@@ -97,6 +97,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
         
         if(mean == T & median == F){
           ndvidat <- platform_data_only$ndvi_mean[which(platform_data_only$tree_id == tree)]
+          sd <- platform_data_only$ndvi_sd[which(platform_data_only$tree_id == tree)]
         } else if(mean == F & median == T){
           ndvidat <- platform_data_only$ndvi_median[which(platform_data_only$tree_id == tree)]
         } else {
@@ -119,7 +120,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                    warning = F,
                                                                    error = F)) #residualSTDerror
           
-          models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = NA, doylist = NA, model = NA)
+          models[[countvar]] <- list(platform = platform,
+                                     tree_id = tree,
+                                     ndvidat = NA,
+                                     ndvi_sd <- if(mean == T & median == F){sd} else {NA},
+                                     doylist = NA,
+                                     model = NA)
           countvar <- countvar+1
         } else {
           
@@ -139,7 +145,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                      warning = T,
                                                                      error = F)) #residualSTDerror
             
-            models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
+            models[[countvar]] <- list(platform = platform, 
+                                       tree_id = tree,
+                                       ndvidat = ndvidat,
+                                       ndvi_sd <- if(mean == T & median == F){sd} else {NA},
+                                       doylist = doylist, 
+                                       model = NA)
             countvar <- countvar+1
           } else if(is(tt,'error')){
             print(paste0('error at platform ',platform, ', tree ',tree,', ',tt))
@@ -153,7 +164,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                      warning = F,
                                                                      error = T)) #residualSTDerror
             
-            models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
+            models[[countvar]] <- list(platform = platform, 
+                                       tree_id = tree, 
+                                       ndvidat = ndvidat,
+                                       ndvi_sd <- if(mean == T & median == F){sd} else {NA},
+                                       doylist = doylist, 
+                                       model = NA)
             countvar <- countvar+1
           } else {
             # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
@@ -204,7 +220,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                      warning = F,
                                                                      error = F)) #residualSTDerror
             
-            models[[countvar]] <- list(platform = platform, tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = fitmodel)
+            models[[countvar]] <- list(platform = platform, 
+                                       tree_id = tree,
+                                       ndvidat = ndvidat,
+                                       ndvi_sd <- if(mean == T & median == F){sd} else {NA},
+                                       doylist = doylist,
+                                       model = fitmodel)
             countvar <- countvar+1
           }
         }
@@ -249,7 +270,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                  warning = F,
                                                                  error = F)) #residualSTDerror
         
-        models[[countvar]] <- list(platform = "sentinel1", tree_id = tree, ndvidat = NA, doylist = NA, model = NA)
+        models[[countvar]] <- list(platform = "sentinel1", 
+                                   tree_id = tree, 
+                                   ndvidat = NA, 
+                                   ndvi_sd = NA,
+                                   doylist = NA, 
+                                   model = NA)
         countvar <- countvar+1
       } else {
         # see, if model can be calculated; if not, move on
@@ -282,7 +308,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                    warning = F,
                                                                    error = T)) #residualSTDerror
           
-          models[[countvar]] <- list(platform = "sentinel1", tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = NA)
+          models[[countvar]] <- list(platform = "sentinel1", 
+                                     tree_id = tree,
+                                     ndvidat = ndvidat,
+                                     ndvi_sd = NA,
+                                     doylist = doylist,
+                                     model = NA)
           countvar <- countvar+1
         } else {
           # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
@@ -333,7 +364,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                    warning = F,
                                                                    error = F)) #residualSTDerror
           
-          models[[countvar]] <- list(platform = "sentinel1", tree_id = tree, ndvidat = ndvidat, doylist = doylist, model = fitmodel)
+          models[[countvar]] <- list(platform = "sentinel1", 
+                                     tree_id = tree,
+                                     ndvidat = ndvidat,
+                                     ndvi_sd = NA,
+                                     doylist = doylist,
+                                     model = fitmodel)
           countvar <- countvar+1
         }
       }
