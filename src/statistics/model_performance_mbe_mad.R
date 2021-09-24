@@ -79,26 +79,40 @@ lin_performance <- rbind(lin_performance, data.frame(platform = "sentinel1",
 lin_performance$r_squared <- format(round(lin_performance$r_squared,3), scientific=F)
 
 # manually check for distribution of points in the fitted R² model; outliers?; few points?
-par(mfrow = c(3,5))
+#mean per-tree NDVI values
+ggplot(model_fitting_out_mean, 
+       aes(x=SOS, y=budburst_obervation_doy)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year")
 
-for(platform in c(unique(model_fitting_out_mean$platform))){
-  plot(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,])
-  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))
-}
+#median per-tree NDVI values
+ggplot(model_fitting_out_median, 
+       aes(x=SOS, y=budburst_obervation_doy)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year")
 
-for(platform in c(unique(model_fitting_out_median$platform))){
-  plot(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,])
-  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))
-}
+#all per-tree NDVI values
+ggplot(model_fitting_out_all, 
+       aes(x=SOS, y=budburst_obervation_doy)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year")
 
-for(platform in c(unique(model_fitting_out_all$platform))){
-  plot(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,])
-  abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))
-}
-
-plot(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",])
-abline(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform=="treetalker",]))
-
+#sentinel-1
+ggplot(model_fitting_out_sen1, 
+       aes(x=SOS, y=budburst_obervation_doy)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  theme_light() +
+  xlab("Day of Year")
 
 #find earliest budburst, latest budburst and total number of detected budbursts per platform
 platform <- "orthomosaic"
