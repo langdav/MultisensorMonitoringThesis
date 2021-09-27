@@ -23,7 +23,7 @@ for(mosaic in mosaics){
   
   for(i in 1:nrow(trees)){
     cat("Processing", trees$tree_id[i], "in Orthomosaic", mosaic,"\n")
-
+    
     #load single tree shapefile
     single_tree_sf <- sf::read_sf(paste0("data/single_tree_shapefiles/",trees$tree_id[i],".gpkg"))
     
@@ -55,8 +55,8 @@ for(mosaic in mosaics){
       
       #create output data frame
       ndvi_all <- rbind(ndvi_all, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi_80)),
-                                               date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi_80)),
-                                               ndvi = ndvi_80))
+                                             date=rep(as.Date(substr(mosaic, 1, 10), "%Y_%m_%d"), length(ndvi_80)),
+                                             ndvi = ndvi_80))
     }
   }
 }
@@ -76,11 +76,11 @@ for(tree in unique(orthomosaic_ndvi_all$tree_id)){
   days <- unique(orthomosaic_ndvi_all$date[which(orthomosaic_ndvi_all$tree_id == tree)])
   for(day in 1:length(days)){
     if(length(boxplot.stats(orthomosaic_ndvi_all$ndvi[which(orthomosaic_ndvi_all$tree_id == tree &
-                                                   orthomosaic_ndvi_all$date == days[day])])$out) != 0){
+                                                            orthomosaic_ndvi_all$date == days[day])])$out) != 0){
       orthomosaic_ndvi_all <- orthomosaic_ndvi_all[-which(orthomosaic_ndvi_all$tree_id == tree &
-                                          orthomosaic_ndvi_all$date == days[day] &
-                                          orthomosaic_ndvi_all$ndvi %in% c(boxplot.stats(orthomosaic_ndvi_all$ndvi[which(orthomosaic_ndvi_all$tree_id == tree &
-                                                                                                         orthomosaic_ndvi_all$date == days[day])])$out)),]
+                                                            orthomosaic_ndvi_all$date == days[day] &
+                                                            orthomosaic_ndvi_all$ndvi %in% c(boxplot.stats(orthomosaic_ndvi_all$ndvi[which(orthomosaic_ndvi_all$tree_id == tree &
+                                                                                                                                             orthomosaic_ndvi_all$date == days[day])])$out)),]
     }
   }
 }
@@ -90,17 +90,17 @@ save(orthomosaic_ndvi_all, file = "out/orthomosaic/outlier_free_ndvi_all_with_ph
 
 # after removing outliers, calculate daily mean and median NDVI values
 orthomosaic_ndvi_mean_per_tree <- orthomosaic_ndvi_all %>% 
-  group_by(tree_id, date) %>% 
-  summarize(ndvi_mean = mean(ndvi, na.rm = T),
-            ndvi_sd = sd(ndvi, na.rm = T),
-            budburst = unique(budburst),
-            budburst_perc = unique(budburst_perc))
+  dplyr::group_by(tree_id, date) %>% 
+  dplyr::summarize(ndvi_mean = mean(ndvi, na.rm = T),
+                   ndvi_sd = sd(ndvi, na.rm = T),
+                   budburst = unique(budburst),
+                   budburst_perc = unique(budburst_perc))
 
 orthomosaic_ndvi_median_per_tree <- orthomosaic_ndvi_all %>% 
-  group_by(tree_id, date) %>% 
+  dplyr::group_by(tree_id, date) %>% 
   dplyr::summarize(ndvi_median = median(ndvi, na.rm = T),
-            budburst = unique(budburst),
-            budburst_perc = unique(budburst_perc))
+                   budburst = unique(budburst),
+                   budburst_perc = unique(budburst_perc))
 
 # save resulting data frame
 save(orthomosaic_ndvi_mean_per_tree, file = "out/orthomosaic/outlier_free_ndvi_mean_per_tree_with_phenoclasses_orthomosaic.RData")
