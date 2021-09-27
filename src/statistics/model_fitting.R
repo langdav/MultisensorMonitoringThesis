@@ -390,7 +390,7 @@ models_median <- model_fitting(dataset = aio_median, mean = F, median = T, retur
 model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = F, sentinel1 = T)
 models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, median = F,return_models = T, sentinel1 = T)
 
-#look at some of those models
+  #look at some of those models
 i <- 165
 ndvidat <- models_mean[[i]]$ndvidat;doylist <- models_mean[[i]]$doylist;fitmodel <- models_mean[[i]]$model;plot(ndvidat ~ doylist, main = models_mean[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
 
