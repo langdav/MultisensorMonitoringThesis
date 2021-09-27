@@ -166,7 +166,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
     platform <- model_sel$platform
     tree <- model_sel$tree
     preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
-    predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
+    predNDVImod <- predict(fitmodel,data.frame(doylist=preddoylist))
     
     #x- and y-axis limits
     if(platform == "sentinel1"){
@@ -279,7 +279,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
           plot_out <- ggplot() +
             geom_point(aes(doylist, ndvidat)) +
             geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_line(aes(doylist,predNDVImod)) +
+            geom_line(aes(preddoylist,predNDVImod)) +
             #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
             geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
             # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
@@ -308,7 +308,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
           plot_out <- ggplot() +
             geom_point(aes(doylist, ndvidat)) +
             geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_line(aes(doylist,predNDVImod)) +
+            geom_line(aes(preddoylist,predNDVImod)) +
             geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
             geom_text(aes(x = buddies$budburst_date,
                           y = max(ndvidat),
@@ -326,7 +326,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
         if(!is.na(data_sel$SOS)){
           plot_out <- ggplot() +
             geom_point(aes(doylist, ndvidat)) +
-            geom_line(aes(doylist,predNDVImod)) +
+            geom_line(aes(preddoylist,predNDVImod)) +
             #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
             geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
             # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
@@ -354,7 +354,7 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
         } else {
           plot_out <- ggplot() +
             geom_point(aes(doylist, ndvidat)) +
-            geom_line(aes(doylist,predNDVImod)) +
+            geom_line(aes(preddoylist,predNDVImod)) +
             geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
             geom_text(aes(x = buddies$budburst_date,
                           y = max(ndvidat),
@@ -540,23 +540,42 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
 }
 
 #Plotting: all trees, single platform; one panel
+for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
+  cat("Processing", platform,"\n")
+  
+  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_mean_1_25",".png"),all_trees_panel,width = 20,height=12)
+  
+  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_mean_25_50",".png"),all_trees_panel,width = 20,height=12)
+  
+  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_median_1_25",".png"),all_trees_panel,width = 20,height=12)
+  
+  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_median_25_50",".png"),all_trees_panel,width = 20,height=12)
+  
+  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_all_values_1_25",".png"),all_trees_panel,width = 20,height=12)
+  
+  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+  ggsave(paste0("out/model_plots/",platform,"_all_values_25_50",".png"),all_trees_panel,width = 20,height=12)
+}
+
 all_trees <- lapply(1:50, function(x) plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
 all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
 all_trees_panel
 #ggsave("out/model_plots/test.png",all_trees_panel)
 
-
 #Plotting: single tree and single platform
 tree_no <- 11
-one <- plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
-two <- plot_SOS(platform = "planetscope", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
-three <- plot_SOS(platform = "treetalker", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
-four <- plot_SOS(platform = "sentinel2", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
-five <- plot_SOS(platform = "sentinel1", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
-
-ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
-
-
+plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
 
 #create plot of each platforms deviation from mean budburst date (with errorbars)
 # mean observed BB date
