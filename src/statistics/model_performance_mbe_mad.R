@@ -4,7 +4,7 @@
 #NOTE:
 
 rm(list = ls())
-library(dplyr)
+library(dplyr);library(ggplot2)
 
 #load fitted models and manually observed budburst data
 load("out/log_function_models/all_values_fitted_models_output.RData")
@@ -84,38 +84,50 @@ ggplot(model_fitting_out_mean,
        aes(x=SOS, y=budburst_obervation_doy)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
   facet_grid(platform~., scales = "free_y") +
   theme_light() +
-  xlab("Day of Year")
+  xlab("Day of Year") +
+  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
 
 #median per-tree NDVI values
 ggplot(model_fitting_out_median, 
        aes(x=SOS, y=budburst_obervation_doy)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
   facet_grid(platform~., scales = "free_y") +
   theme_light() +
-  xlab("Day of Year")
+  xlab("Day of Year") +
+  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
 
 #all per-tree NDVI values
 ggplot(model_fitting_out_all, 
        aes(x=SOS, y=budburst_obervation_doy)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
   facet_grid(platform~., scales = "free_y") +
   theme_light() +
-  xlab("Day of Year")
+  xlab("Day of Year") +
+  ggtitle("all NDVI values; BB ~ observed, linear model")
 
 #sentinel-1
 ggplot(model_fitting_out_sen1, 
        aes(x=SOS, y=budburst_obervation_doy)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
   theme_light() +
-  xlab("Day of Year")
+  xlab("Day of Year") +
+  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
 
 #find earliest budburst, latest budburst and total number of detected budbursts per platform
 platform <- "orthomosaic"
+platform <- "treetalker"
+platform <- "sentinel2"
+platform <- "planetscope"
+
 
 min(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
 max(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
@@ -133,8 +145,6 @@ length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platfor
 min(model_fitting_out_sen1$SOS, na.rm = T)
 max(model_fitting_out_sen1$SOS, na.rm = T)
 length(which(is.na(model_fitting_out_sen1$SOS)==F))
-
-
 
 
 
