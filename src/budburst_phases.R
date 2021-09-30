@@ -15,13 +15,30 @@ budburst <- budburst %>% filter(budburst$Tree_ID %in% unique(budburst$Tree_ID)[-
 # A - Buds, dormant, winter aspect; B - Buds swell and get round; C -  Buds have swollen and have burst, D - Buds have burst, leaves are coiled, E - Light foliage, F - Full foliage
 # budburst: D, E, F
 # Classification for ggplots: 0% budburst, <50% budburst , <50% budburst, 100% foliage
-budburst$budburst <- NA
-budburst$budburst_perc <- NA
 
+
+##################################################################################
+## three budburst phases; D, E, F; percentage of tree in each phase and higher ##
+################################################################################
+budburst_new <- budburst
+
+for(i in 1:nrow(budburst_new)){
+  budburst_new$Phase.D[i] <- budburst_new$Phase.D[i] + budburst_new$Phase.E[i] + budburst_new$Phase.F[i]
+  budburst_new$Phase.E[i] <- budburst_new$Phase.E[i] + budburst_new$Phase.F[i]
+  budburst_new$Phase.F[i] <- budburst_new$Phase.F[i]
+}
+
+budburst_new <- budburst_new[,c(9,1,6:8)]
+names(budburst_new) <- c("date","tree_id","phase_d","phase_e","phase_f")
+
+save(budburst_new, file = "data/budburst_data/budburst_phases_def.RData")
 
 ###########################################################################
 ## two budburst phases; budburst or no_budburst; percentage of budburst ##
 #########################################################################
+budburst$budburst <- NA
+budburst$budburst_perc <- NA
+
 for(i in 1:nrow(budburst)){
   if(budburst$Phase.D[i] > 0 || budburst$Phase.E[i] > 0 || budburst$Phase.F[i] > 0){
     budburst$budburst[i] <- T
