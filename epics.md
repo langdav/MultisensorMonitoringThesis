@@ -6,9 +6,9 @@
 
 **Epic 1: Collecting data**
 
-- [] Story 1: Satellite Remote Sensing (SRS)
-  - [] Landsat (30m), Sentinel-2 (10m)
-    - [] optional: get data from *Nico*
+- [x] Story 1: Satellite Remote Sensing (SRS)
+  - [x] <del>Landsat (30m)</del>, Sentinel-2 (10m)
+    - [x] optional: get script from *Nico*
     - <del> [] familiarise with [Force](https://force-eo.readthedocs.io/en/latest/howto/index.html) to download the needed data </del>
       -  <del> [] Tutorial "The Datacube" </del>
       - <del> [] Tutorial "Coregistration" </del>
@@ -18,7 +18,7 @@
     - [x] clip to extent of MOF
     - [x] preprocessing
     - <del> [] optional: get data from *Nico* </del>
-  - [] Planetscope (3.7m an nadir)
+  - [x] Planetscope (3.7m an nadir)
     - [x] optional: get data from *Nico*
     - [x] new account on [planet.com](https://www.planet.com/) (students account)
     - <del> [] load data with cloud cover of ~ 80% </del>
