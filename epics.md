@@ -24,28 +24,30 @@
     - <del> [] load data with cloud cover of ~ 80% </del>
     - <del> [] get data for 2021 </del>
 
-- [] Story 2: Drone :alarm_clock: *when processed*
-  - [] get data from *Nico*, as soon as its processed
-  - [] Dense Point Clouds
-  - [] Orthophoto
+- [x] Story 2: Drone :alarm_clock: *when processed*
+  - [x] get data from <del>*Nico*</del>*Lisa*, as soon as its processed
+  - <del> [] Dense Point Clouds </del>
+  - [x] Orthomosaics
 
-- [] Story 3: TreeSensors
-  - [x] TreeSense Magnitude :alarm_clock: 25.06.2021
-    - [x] download data manually on [treesense.net](https://login.treesense.net/home/) (downloaded: 21.06.2012, 10:00)
-    - [x] tidy data (remove duplicate entries; replace "," with "." and convert temperature and magnitude to numeric)
-    - [] find out, what the impedance tells us
-        - The electrical impedance in the xylem part represents the tree's heart rate. It indicates the well-being of the tree and provides a large variety of insights. (Source: treesense.net); *very 'informative', thanks*
-  - [] Sapflow :alarm_clock: *when available*
-  - [] Wood Water Content (VWWC) :alarm_clock: *when available*
-  - [] Spectral Sensors :alarm_clock: *when available*
- 
-- [] Story 4: PhenoCams
-  - [x] look for budbursts in the cams images
-  - [x] ask *Martin*, which cam was placed in which tree
-  - [x] search for sources of error; find potential improvement possibilities
-  - [] add error/improvement notes to the PhenoCam repo
+- <del> [] Story 3: TreeSensors </del>
+  - <del> [x] TreeSense Magnitude :alarm_clock: 25.06.2021 </del>
+    - <del> [x] download data manually on [treesense.net](https://login.treesense.net/home/) (downloaded: 21.06.2012, 10:00) </del>
+    - <del> [x] tidy data (remove duplicate entries; replace "," with "." and convert temperature and magnitude to numeric) </del>
+    - <del> [] find out, what the impedance tells us </del>
+        - <del> The electrical impedance in the xylem part represents the tree's heart rate. It indicates the well-being of the tree and provides a large variety of insights. (Source: treesense.net); *very 'informative', thanks* </del>
+  - [] <del> Sapflow :alarm_clock: *when available* </del>
+  - [] <del> Wood Water Content (VWWC) :alarm_clock: *when available* </del>
+  - [] <del> Spectral Sensors :alarm_clock: *when available* </del>
   
-- [] Story 5: Budburst phases
+- [x] Story 3: TreeTalker
+ 
+-  <del> [] Story 4: PhenoCams </del>
+  -  <del> [x] look for budbursts in the cams images </del>
+  -  <del> [x] ask *Martin*, which cam was placed in which tree </del>
+  -  <del> [x] search for sources of error; find potential improvement possibilities </del>
+  -  <del> [] add error/improvement notes to the PhenoCam repo </del>
+  
+- [x] Story 5: Budburst phases
 
 **Epic 2: Paperwork**
  
@@ -71,9 +73,9 @@
 
 **Epic 3: Data Processing**
 
-- [] Story 1: Satellite Remote Sensing (SRS) data
-  - [] NDVI
-  - [] EVI (Enhanced Vegetation Index)
+- [x] Story 1: Satellite Remote Sensing (SRS) data
+  - [x] NDVI
+  - <del> [] EVI (Enhanced Vegetation Index)
 
 - [] Story 2: Drone data
   - Dense Point Clouds
