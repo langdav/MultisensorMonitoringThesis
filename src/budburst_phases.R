@@ -5,7 +5,7 @@
 #NOTE: no budburst = A, B, C; budburst = D, E, F
 
 rm(list = ls())
-library(dplyr);library(ggplot2);library(viridis);library(tidyr)
+library(dplyr);library(ggplot2);library(viridis);library(tidyr);library(lubridate)
 
 budburst <- read.csv2("data/budburst_data/data_spring_phenology_mof_21.csv")
 budburst$date <- as.Date(budburst$Date, format = "%d.%m.%Y")
@@ -21,15 +21,16 @@ budburst <- budburst %>% filter(budburst$Tree_ID %in% unique(budburst$Tree_ID)[-
 ## three budburst phases; D, E, F; percentage of tree in each phase and higher ##
 ################################################################################
 budburst_new <- budburst
+budburst_new$doy <- yday(budburst_new$date)
 
 for(i in 1:nrow(budburst_new)){
-  budburst_new$Phase.D[i] <- budburst_new$Phase.D[i] + budburst_new$Phase.E[i] + budburst_new$Phase.F[i]
-  budburst_new$Phase.E[i] <- budburst_new$Phase.E[i] + budburst_new$Phase.F[i]
-  budburst_new$Phase.F[i] <- budburst_new$Phase.F[i]
+  budburst_new$Phase.D[i] <- (budburst_new$Phase.D[i] + budburst_new$Phase.E[i] + budburst_new$Phase.F[i])/100
+  budburst_new$Phase.E[i] <- (budburst_new$Phase.E[i] + budburst_new$Phase.F[i])/100
+  budburst_new$Phase.F[i] <- (budburst_new$Phase.F[i])/100
 }
 
-budburst_new <- budburst_new[,c(9,1,6:8)]
-names(budburst_new) <- c("date","tree_id","phase_d","phase_e","phase_f")
+budburst_new <- budburst_new[,c(9,10,1,6:8)]
+names(budburst_new) <- c("date","doy","tree_id","phase_d","phase_e","phase_f")
 
 save(budburst_new, file = "data/budburst_data/budburst_phases_def.RData")
 
