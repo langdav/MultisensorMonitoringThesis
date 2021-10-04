@@ -5,7 +5,7 @@
 #NOTE: model variables: a = amplitude of increase; b = growth rate; c = value of t at inflection point; d = lower asymptote
 
 rm(list = ls())
-library(stats);library(rgdal);library(lubridate);library(dplyr);library(RColorBrewer);library(ggplot2);library(minpack.lm) #minpack.lm isneeded for the use of minpack.lm::nlsLM()
+library(stats);library(rgdal);library(lubridate);library(dplyr);library(RColorBrewer);library(ggplot2);library(kit);library(minpack.lm) #minpack.lm isneeded for the use of minpack.lm::nlsLM()
 
 #load data
 load("out/all_in_one/aio_daily_ndvi_all.RData")
@@ -189,26 +189,56 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             
             # predict values of days, that are not present in the images, based on lgistic function "fitmodel"
             preddoylist <- seq(doystart,doyend,1)
-            predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
+            predNDVImod <- predict(fitmodel,data.frame(doylist=preddoylist))
             
             #first derivation: slope
-            # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
-            firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2)
+            # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
+            # firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
             
             #second derivation: curvature
-            # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
-            secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2))
-            curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+            # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
+            # secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
+            # curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+            
+            #curvature change rate (= first derivation)
+            #firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
+            firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
+            
+            # ggplot() + 
+            #   geom_line(aes(preddoylist, firstDerivCurv)) + 
+            #   scale_x_continuous(breaks = round(seq(min(doylist), max(doylist), by = 1),1))
             
             #change of curvature
-            ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
+            #ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
             
+            #plot
+            # ggplot() +
+            #   geom_point(aes(preddoylist,predNDVImod), colour = "red") +
+            #   geom_point(aes(doylist,ndvidat)) +
+            #   scale_x_continuous(breaks = round(seq(min(doylist), max(doylist), by = 1),1)) +
+            #   scale_y_continuous(breaks = seq(0, 100, by = 5)) +
+            #   geom_line(aes(preddoylist,firstDerivNDVImod),colour = "red") +
+            #   geom_line(aes(preddoylist,secondDerivNDVImod),colour = "blue") +
+            #   geom_line(aes(preddoylist,firstDerivCurv*1000)) +
+            #   geom_line(aes(preddoylist, ROCcurvature*1000),colour = "green") +
+            #   geom_vline(xintercept = preddoylist[which(secondDerivNDVImod == max(secondDerivNDVImod))]) +
+            #   geom_vline(xintercept = preddoylist[which(secondDerivNDVImod == min(secondDerivNDVImod))]) +
+            #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == max(secondDerivNDVImod))]) +
+            #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == min(secondDerivNDVImod))])
+            
+            # old way of finding SOS
             # diff(ROCcurvature) = amount of change of curvature between two points
             # sign(diff(ROCcurvature)) = positive (1) or negative (-1) change of curvature between two points
             # which(diff(sign(diff(ROCcurvature)))==-2) = point where curvature changes from positive to negative (or the other way around)
-            SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
-            MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
-            EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
+            # SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
+            # MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
+            # EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
+            
+            # new way of finding SOS
+            # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
+            SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
+            MOS <- preddoylist[which.min(firstDerivCurv)]
+            EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
             
             model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
                                                                      tree_id = tree,
