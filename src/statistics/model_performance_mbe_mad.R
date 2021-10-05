@@ -96,38 +96,84 @@ mbe_mad <- rbind(mbe_mad, data.frame(platform = "Sentinel-1",
                                      n_predictions = length(which(is.na(model_fitting_out_sen1$SOS[which(model_fitting_out_sen1$platform == "sentinel1")])==F))))
 
 
-
+  
 #perform a simple linear regression between estimated and observed budburst dates and get the rsquared of the model
 lin_performance <- NULL
 for(platform in unique(model_fitting_out_mean$platform)){
   lin_performance <- rbind(lin_performance, data.frame(platform = platform,
                                                        ndvi_mean_median = "mean",
-                                                       r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,
-                                                       slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
-                                                       intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7]))
+                                                       r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,
+                                                       slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7],
+                                                       r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,
+                                                       slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7],
+                                                       r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,
+                                                       slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7]))
   lin_performance <- rbind(lin_performance, data.frame(platform = platform,
                                                        ndvi_mean_median = "median",
-                                                       r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$r.squared,
-                                                       slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[8],
-                                                       intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[7]))
+                                                       r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$r.squared,
+                                                       slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[7],
+                                                       r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$r.squared,
+                                                       slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[7],
+                                                       r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$r.squared,
+                                                       slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$coefficients[7]))
   lin_performance <- rbind(lin_performance, data.frame(platform = platform,
                                                        ndvi_mean_median = "all_values",
-                                                       r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$r.squared,
-                                                       slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[8],
-                                                       intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[7]))
+                                                       r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$r.squared,
+                                                       slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[7],
+                                                       r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$r.squared,
+                                                       slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[7],
+                                                       r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$r.squared,
+                                                       slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[8],
+                                                       intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_all[model_fitting_out_all$platform==platform,]))$coefficients[7]))
 }
 lin_performance <- rbind(lin_performance, data.frame(platform = "sentinel1",
                                                      ndvi_mean_median = NA,
-                                                     r_squared = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$r.squared,
-                                                     slope_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[8],
-                                                     intercept_signif = summary(lm(SOS ~ budburst_obervation_doy,model_fitting_out_sen1))$coefficients[7]))
+                                                     r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_sen1))$r.squared,
+                                                     slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_sen1))$coefficients[8],
+                                                     intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_sen1))$coefficients[7],
+                                                     r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_sen1))$r.squared,
+                                                     slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_sen1))$coefficients[8],
+                                                     intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_sen1))$coefficients[7],
+                                                     r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$r.squared,
+                                                     slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[8],
+                                                     intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[7]))
 
-lin_performance$r_squared <- format(round(lin_performance$r_squared,3), scientific=F)
+lin_performance$r_squared_d <- format(round(lin_performance$r_squared_d,3), scientific=F)
+lin_performance$r_squared_e <- format(round(lin_performance$r_squared_e,3), scientific=F)
+lin_performance$r_squared_f <- format(round(lin_performance$r_squared_f,3), scientific=F)
 
 # manually check for distribution of points in the fitted R² model; outliers?; few points?
 #mean per-tree NDVI values
 ggplot(model_fitting_out_mean, 
-       aes(x=SOS, y=budburst_obervation_doy)) +
+       aes(x=SOS, y=SOS_phase_d)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_mean, 
+       aes(x=SOS, y=SOS_phase_e)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_mean, 
+       aes(x=SOS, y=SOS_phase_f)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
   geom_abline(slope = 1, intercept = 0, color = "red") +
@@ -138,7 +184,27 @@ ggplot(model_fitting_out_mean,
 
 #median per-tree NDVI values
 ggplot(model_fitting_out_median, 
-       aes(x=SOS, y=budburst_obervation_doy)) +
+       aes(x=SOS, y=SOS_phase_d)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_median, 
+       aes(x=SOS, y=SOS_phase_e)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_median, 
+       aes(x=SOS, y=SOS_phase_f)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
   geom_abline(slope = 1, intercept = 0, color = "red") +
@@ -149,7 +215,7 @@ ggplot(model_fitting_out_median,
 
 #all per-tree NDVI values
 ggplot(model_fitting_out_all, 
-       aes(x=SOS, y=budburst_obervation_doy)) +
+       aes(x=SOS, y=SOS_phase_d)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
   geom_abline(slope = 1, intercept = 0, color = "red") +
@@ -158,12 +224,53 @@ ggplot(model_fitting_out_all,
   xlab("Day of Year") +
   ggtitle("all NDVI values; BB ~ observed, linear model")
 
-#sentinel-1
-ggplot(model_fitting_out_sen1, 
-       aes(x=SOS, y=budburst_obervation_doy)) +
+ggplot(model_fitting_out_all, 
+       aes(x=SOS, y=SOS_phase_e)) +
   geom_point() +
   geom_smooth(formula = y ~ x, method = "lm") +
   geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("all NDVI values; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_all, 
+       aes(x=SOS, y=SOS_phase_f)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("al NDVI values; BB ~ observed, linear model")
+
+#sentinel-1
+ggplot(model_fitting_out_sen1, 
+       aes(x=SOS, y=SOS_phase_d)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_sen1, 
+       aes(x=SOS, y=SOS_phase_e)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
+  theme_light() +
+  xlab("Day of Year") +
+  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
+
+ggplot(model_fitting_out_sen1, 
+       aes(x=SOS, y=SOS_phase_f)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(platform~., scales = "free_y") +
   theme_light() +
   xlab("Day of Year") +
   ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
