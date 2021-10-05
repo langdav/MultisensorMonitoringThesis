@@ -22,79 +22,25 @@ load("out/log_function_models/sentinel1_fitted_models.RData")
 # load("out/log_function_models/whole_forest_sentinel1_fitted_models_output.RData")
 # load("out/log_function_models/whole_forest_sentinel1_fitted_models.RData")
 
-budburst <- read.csv("data/budburst_data/budburst_long.csv")
-budburst$date <- as.Date(budburst$date)
-
 load("data/trees.RData")
 trees$tree_id <- as.character(trees$tree_id)
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
 #prepare data frames and functions
-#create data frame for budburst percent vlines
-buddies_budburst_percent <- NULL
-for(tree in unique(budburst$tree_id)){
-  tmp <- budburst %>% filter(tree_id == tree)
-  percs <- unique(tmp$budburst_perc)
-  for(perc in percs){
-    if(perc == 0){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(head(tmp$date,1)),
-                                                                             last_date = yday(tmp$date[max(which(tmp$budburst_perc==0))]),
-                                                                             budburst_perc = 0))
-    }
-    if(perc == 100){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(tmp$date[min(which(tmp$budburst_perc==100))]),
-                                                                             last_date = yday(tail(tmp$date,1)),
-                                                                             budburst_perc = 100))
-    }
-    if(perc > 0 & perc < 100){
-      buddies_budburst_percent <- rbind(buddies_budburst_percent, data.frame(tree_id = tree,
-                                                                             first_date = yday(tmp$date[min(which(tmp$budburst_perc==perc))]),
-                                                                             last_date = yday(tmp$date[max(which(tmp$budburst_perc==perc))]),
-                                                                             budburst_perc = perc))
-    }
-  }
-}
-
 #create data frame for budburst start vline
-buddies_budburst_start <- NULL
-for(tree in unique(budburst$tree_id)){
-  tmp <- budburst %>% filter(tree_id == tree)
-  budburst_date_tmp <- yday(tmp$date[tmp$budburst == T][1])
-  buddies_budburst_start <- rbind(buddies_budburst_start, data.frame(tree_id = tree,
-                                                                     budburst_date = budburst_date_tmp))
-}
-
-#mean day of budburst from observations
-budburst_mean_observation <- round(mean(buddies_budburst_start$budburst_date,na.rm=T),0)
-
-#mean day of budburst from remote sensing
-budburst_mean_remote <- NULL
-for(platform in unique(model_fitting_out_mean$platform)){
-  budburst_mean_mean <- round(mean(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],na.rm=T),0)
-  budburst_mean_median <- round(mean(model_fitting_out_median$SOS[model_fitting_out_median$platform==platform],na.rm=T),0)
-  budburst_mean_remote <- rbind(budburst_mean_remote, data.frame(platform = platform,
-                                                                 mean_median = "mean",
-                                                                 budburst_date = budburst_mean_mean,
-                                                                 budburst_date_observation = budburst_mean_observation))
-  budburst_mean_remote <- rbind(budburst_mean_remote, data.frame(platform = platform,
-                                                                 mean_median = "median",
-                                                                 budburst_date = budburst_mean_median,
-                                                                 budburst_date_observation = budburst_mean_observation))
-}
-#add sentinel-1 derived budburst date
-budburst_sen1_mean <- round(mean(model_fitting_out_sen1$SOS,na.rm=T),0)
-budburst_mean_remote <- rbind(budburst_mean_remote, data.frame(platform = "sentinel1",
-                                                               mean_median = NA,
-                                                               budburst_date = budburst_sen1_mean,
-                                                               budburst_date_observation = budburst_mean_observation))
-
-
-#write.csv(budburst_mean_remote, "out/model_performance/mean_of_all_trees_budburst_dates.csv")
+# budburst <- read.csv("data/budburst_data/budburst_long.csv")
+# budburst$date <- as.Date(budburst$date)
+# 
+# buddies_budburst_start <- NULL
+# for(tree in unique(budburst$tree_id)){
+#   tmp <- budburst %>% filter(tree_id == tree)
+#   budburst_date_tmp <- yday(tmp$date[tmp$budburst == T][1])
+#   buddies_budburst_start <- rbind(buddies_budburst_start, data.frame(tree_id = tree,
+#                                                                      budburst_date = budburst_date_tmp))
+# }
 
 #plotting function; single tree and single platform
-plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = 1, budburst_percent = F){
+plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = 1, budburst_percent = F){
   if(platform == "sentinel1"){
     models <- models_sen1
     model_fitting_out <- model_fitting_out_sen1
@@ -142,21 +88,6 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
   } else {
     data_sel <- model_fitting_out[which(model_fitting_out$platform == platform_sel & model_fitting_out$tree_id == tree_sel),]
   }  
-  
-  #prepare data for plots
-  
-  # if(platform == "orthomosaic") {doylist <- c(113, 117, 134, 148, 155, 174)}
-  # if(platform == "treetalker") {doylist <- c(96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 
-  #                                            110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 
-  #                                            123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 
-  #                                            136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 
-  #                                            149, 150, 151, 152)}
-  # if(platform == "sentinel2") {doylist <- c(79, 89, 129, 164, 169)}
-  # if(platform == "planetscope") {doylist <- c(66, 83, 89, 93, 99, 104, 110, 113, 114, 115, 116, 117, 128, 129, 144, 148, 151, 152)}
-  # if(platform == "sentinel1") {doylist <- c(74, 77, 78, 80, 81, 83, 84, 86, 87, 89, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 
-  #                                           108, 110, 111, 113, 114, 116, 117, 119, 122, 123, 125, 126, 128, 129, 131, 132, 134, 135, 
-  #                                           137, 138, 140, 141, 143, 144, 146, 147, 149, 150)}
-  
   
   ndvidat <- model_sel$ndvidat
   ndvi_sd <- model_sel[[4]]
@@ -206,15 +137,13 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
       }
     }
     
-    
-    if(budburst_percent == T){
-      #plot with budburst percent
-      buddies <- buddies_budburst_percent[buddies_budburst_percent$tree_id == tree_sel,]
-      if(mean_ndvi_values == T & median_ndvi_values == F){
+    # buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
+    if(mean_ndvi_values == T & median_ndvi_values == F){
+      if(!is.na(data_sel$SOS)){
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-          geom_line(aes(doylist,predNDVImod)) +
+          geom_line(aes(preddoylist,predNDVImod)) +
           #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
           geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
           # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
@@ -227,10 +156,34 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
                         label = "predicted",
                         vjust = 0,
                         angle = 90)) +
-          geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
-          geom_text(aes(x = buddies$first_date[-1],
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
                         y = max(ndvidat),
-                        label = buddies$budburst_perc[-1],
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
           xlim(xlim_min, xlim_max) +
@@ -243,23 +196,35 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-          geom_line(aes(doylist,predNDVImod)) +
-          #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
-          geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-          # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-          #               y = min(ndvidat),
-          #               label = c("SOS","MOS","EOS"),
+          geom_line(aes(preddoylist,predNDVImod)) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
           #               vjust = 0,
           #               angle = 90)) +
-          geom_text(aes(x = data_sel$SOS,
-                        y = min(ndvidat),
-                        label = "predicted",
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
+                        y = max(ndvidat),
+                        label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
-          geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
-          geom_text(aes(x = buddies$first_date[-1],
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
                         y = max(ndvidat),
-                        label = buddies$budburst_perc[-1],
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
           xlim(xlim_min, xlim_max) +
@@ -269,109 +234,104 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
           ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
           ggtitle(paste0(platform_sel,";",tree))
       }
-      
-      
     } else {
-      # plot with budburst start date
-      buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
-      if(mean_ndvi_values == T & median_ndvi_values == F){
-        if(!is.na(data_sel$SOS)){
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_line(aes(preddoylist,predNDVImod)) +
-            #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
-            geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-            # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-            #               y = min(ndvidat),
-            #               label = c("SOS","MOS","EOS"),
-            #               vjust = 0,
-            #               angle = 90)) +
-            geom_text(aes(x = data_sel$SOS,
-                          y = min(ndvidat),
-                          label = "predicted",
-                          vjust = 0,
-                          angle = 90)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        } else {
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_line(aes(preddoylist,predNDVImod)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        }
+      if(!is.na(data_sel$SOS)){
+        plot_out <- ggplot() +
+          geom_point(aes(doylist, ndvidat)) +
+          geom_line(aes(preddoylist,predNDVImod)) +
+          #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
+          geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
+          # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
+          #               y = min(ndvidat),
+          #               label = c("SOS","MOS","EOS"),
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_text(aes(x = data_sel$SOS,
+                        y = min(ndvidat),
+                        label = "predicted",
+                        vjust = 0,
+                        angle = 90)) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
+                        y = max(ndvidat),
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
+                        vjust = 0,
+                        angle = 90)) +
+          xlim(xlim_min, xlim_max) +
+          ylim(ylim_min, ylim_max) +
+          theme_light() +
+          xlab("Day of Year") +
+          ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+          ggtitle(paste0(platform_sel,";",tree))
       } else {
-        if(!is.na(data_sel$SOS)){
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_line(aes(preddoylist,predNDVImod)) +
-            #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
-            geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-            # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-            #               y = min(ndvidat),
-            #               label = c("SOS","MOS","EOS"),
-            #               vjust = 0,
-            #               angle = 90)) +
-            geom_text(aes(x = data_sel$SOS,
-                          y = min(ndvidat),
-                          label = "predicted",
-                          vjust = 0,
-                          angle = 90)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        } else {
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_line(aes(preddoylist,predNDVImod)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        }
+        plot_out <- ggplot() +
+          geom_point(aes(doylist, ndvidat)) +
+          geom_line(aes(preddoylist,predNDVImod)) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
+                        y = max(ndvidat),
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
+                        vjust = 0,
+                        angle = 90)) +
+          xlim(xlim_min, xlim_max) +
+          ylim(ylim_min, ylim_max) +
+          theme_light() +
+          xlab("Day of Year") +
+          ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+          ggtitle(paste0(platform_sel,";",tree))
       }
-      
-      
     }
+    
+    
+    
   } else if(!any(is.na(ndvidat)) & any(is.na(fitmodel))){
     doylist <- model_sel$doylist
     platform <- model_sel$platform
@@ -415,18 +375,40 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
       }
     }
     
-    
-    if(budburst_percent == T){
-      #plot with budburst percent
-      buddies <- buddies_budburst_percent[buddies_budburst_percent$tree_id == tree_sel,]
-      if(mean_ndvi_values == T & median_ndvi_values == F){
+    # buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
+    if(mean_ndvi_values == T & median_ndvi_values == F){
+      if(!is.na(data_sel$SOS)){
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-          geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
-          geom_text(aes(x = buddies$first_date[-1],
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
                         y = max(ndvidat),
-                        label = buddies$budburst_perc[-1],
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
           xlim(xlim_min, xlim_max) +
@@ -438,10 +420,35 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
       } else {
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
-          geom_vline(xintercept = buddies$first_date[-1], linetype = "longdash", color = "red", size = .5) +
-          geom_text(aes(x = buddies$first_date[-1],
+          geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
                         y = max(ndvidat),
-                        label = buddies$budburst_perc[-1],
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
           xlim(xlim_min, xlim_max) +
@@ -451,78 +458,88 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
           ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
           ggtitle(paste0(platform_sel,";",tree))
       }
-      
     } else {
-      # plot with budburst start date
-      buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
-      if(mean_ndvi_values == T & median_ndvi_values == F){
-        if(!is.na(data_sel$SOS)){
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        } else {
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        }
+      if(!is.na(data_sel$SOS)){
+        plot_out <- ggplot() +
+          geom_point(aes(doylist, ndvidat)) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
+                        y = max(ndvidat),
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
+                        vjust = 0,
+                        angle = 90)) +
+          xlim(xlim_min, xlim_max) +
+          ylim(ylim_min, ylim_max) +
+          theme_light() +
+          xlab("Day of Year") +
+          ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+          ggtitle(paste0(platform_sel,";",tree))
       } else {
-        if(!is.na(data_sel$SOS)){
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        } else {
-          plot_out <- ggplot() +
-            geom_point(aes(doylist, ndvidat)) +
-            geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-            geom_text(aes(x = buddies$budburst_date,
-                          y = max(ndvidat),
-                          label = "OBS",
-                          vjust = 0,
-                          angle = 90)) +
-            xlim(xlim_min, xlim_max) +
-            ylim(ylim_min, ylim_max) +
-            theme_light() +
-            xlab("Day of Year") +
-            ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-            ggtitle(paste0(platform_sel,";",tree))
-        }
+        plot_out <- ggplot() +
+          geom_point(aes(doylist, ndvidat)) +
+          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = buddies$budburst_date,
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
+          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
+          #               y = max(ndvidat),
+          #               label = "OBS",
+          #               vjust = 0,
+          #               angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_d,
+                        y = max(ndvidat),
+                        label = "phase_d",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_e,
+                        y = max(ndvidat),
+                        label = "phase_e",
+                        vjust = 0,
+                        angle = 90)) +
+          geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
+          geom_text(aes(x = data_sel$SOS_phase_f,
+                        y = max(ndvidat),
+                        label = "phase_f",
+                        vjust = 0,
+                        angle = 90)) +
+          xlim(xlim_min, xlim_max) +
+          ylim(ylim_min, ylim_max) +
+          theme_light() +
+          xlab("Day of Year") +
+          ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+          ggtitle(paste0(platform_sel,";",tree))
       }
     }
+    
   } else {
     plot_out <- ggplot() +
       geom_text(aes(x = 1, y = 1, label = "no data available"), size = 5) +
@@ -540,32 +557,61 @@ plot_SOS <- function(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi
 }
 
 #Plotting: all trees, single platform; one panel
+# for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
+#   for(phase in c("phase_d","phase_e","phase_f")){
+#     cat("Processing", platform, ",", phase,"\n")
+#     
+#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_mean_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
+#     
+#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_mean_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
+#     
+#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_median_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
+#     
+#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_median_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
+#     
+#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_all_values_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
+#     
+#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+#     ggsave(paste0("out/model_plots/",platform,"_all_values_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
+#   }
+# }
 for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
-  cat("Processing", platform,"\n")
-  
-  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_mean_1_25",".png"),all_trees_panel,width = 20,height=12)
-  
-  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_mean_25_50",".png"),all_trees_panel,width = 20,height=12)
-  
-  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_median_1_25",".png"),all_trees_panel,width = 20,height=12)
-  
-  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_median_25_50",".png"),all_trees_panel,width = 20,height=12)
-  
-  all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_all_values_1_25",".png"),all_trees_panel,width = 20,height=12)
-  
-  all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-  ggsave(paste0("out/model_plots/",platform,"_all_values_25_50",".png"),all_trees_panel,width = 20,height=12)
+    cat("Processing", platform,"\n")
+    
+    all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_mean_1_25",".png"),all_trees_panel,width = 20,height=12)
+    
+    all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_mean_25_50",".png"),all_trees_panel,width = 20,height=12)
+    
+    all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_median_1_25",".png"),all_trees_panel,width = 20,height=12)
+    
+    all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_median_25_50",".png"),all_trees_panel,width = 20,height=12)
+    
+    all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_all_values_1_25",".png"),all_trees_panel,width = 20,height=12)
+    
+    all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
+    ggsave(paste0("out/model_plots/",platform,"_all_values_25_50",".png"),all_trees_panel,width = 20,height=12)
 }
 
 all_trees <- lapply(1:50, function(x) plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
@@ -574,179 +620,111 @@ all_trees_panel
 #ggsave("out/model_plots/test.png",all_trees_panel)
 
 #Plotting: single tree and single platform
-tree_no <- 11
-plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
+tree_no <- 2
+plot_SOS(platform = "planetscope", obs_phase = "phase_f", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
 
 #create plot of each platforms deviation from mean budburst date (with errorbars)
 # mean observed BB date
-mean_obs <- mean(buddies_budburst_start$budburst_date, na.rm = T)
-sd_obs <- sd(buddies_budburst_start$budburst_date, na.rm = T)
+load("out/log_function_models/budburst_fitted_models_output.RData")
+mean_obs_d <- mean(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_d")], na.rm = T)
+sd_obs_d <- sd(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_d")], na.rm = T)
+
+mean_obs_e <- mean(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_e")], na.rm = T)
+sd_obs_e <- sd(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_e")], na.rm = T)
+
+mean_obs_f <- mean(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_f")], na.rm = T)
+sd_obs_f <- sd(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_f")], na.rm = T)
+
 
 # mean predicted dates per platform
 means_all <- NULL  
 for(platform in unique(model_fitting_out_mean$platform)){
   tmp <- model_fitting_out_mean[which(model_fitting_out_mean$platform == platform),]
-  m <- mean(tmp$SOS-mean_obs, na.rm = T)
+  m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
+  m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
+  m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
-                                           bb_mean = m,
+                                           bb_mean_d = m_d,
+                                           bb_mean_e = m_e,
+                                           bb_mean_f = m_f,
                                            bb_sd = std,
                                            ndvi = "mean"))
   
   tmp <- model_fitting_out_median[which(model_fitting_out_median$platform == platform),]
-  m <- mean(tmp$SOS-mean_obs, na.rm = T)
+  m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
+  m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
+  m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
-                                           bb_mean = m,
+                                           bb_mean_d = m_d,
+                                           bb_mean_e = m_e,
+                                           bb_mean_f = m_f,
                                            bb_sd = std,
                                            ndvi = "median"))
   
   tmp <- model_fitting_out_all[which(model_fitting_out_all$platform == platform),]
-  m <- mean(tmp$SOS-mean_obs, na.rm = T)
+  m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
+  m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
+  m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
   std <- sd(tmp$SOS, na.rm = T)
   
   means_all <- rbind(means_all, data.frame(platform = platform,
-                                           bb_mean = m,
+                                           bb_mean_d = m_d,
+                                           bb_mean_e = m_e,
+                                           bb_mean_f = m_f,
                                            bb_sd = std,
                                            ndvi = "all_values"))
 }
 means_sen1 <- data.frame(platform = "sentinel1",
-                         bb_mean = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs,
+                         bb_mean_d = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_d,
+                         bb_mean_e = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_e,
+                         bb_mean_f = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_f,
                          bb_sd = sd(model_fitting_out_sen1$SOS, na.rm = T),
                          ndvi = "all_values")
 means_all <- rbind(means_all, means_sen1)
 
-mean_obs <- mean(buddies_budburst_start$budburst_date, na.rm = T)
-sd_obs <- sd(buddies_budburst_start$budburst_date, na.rm = T)
 
 means_all %>% 
-  ggplot(aes(x = bb_mean, y = platform, color = platform)) + 
-  geom_point(size = 2.5) +
-  geom_errorbarh(aes(xmin=bb_mean-bb_sd, xmax=bb_mean+bb_sd), height = .4) +
+  ggplot(aes(x = bb_mean_d, y = platform, color = platform)) + 
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin=bb_mean_d-bb_sd, xmax=bb_mean_d+bb_sd), height = .3) +
   geom_vline(xintercept = 0, linetype = "longdash", color = "black", size = .5) +
-  geom_vline(xintercept = sd_obs, linetype = "dotted", color = "black", size = .5) +
-  geom_vline(xintercept = 0-sd_obs, linetype = "dotted", color = "black", size = .5) +
+  geom_vline(xintercept = sd_obs_d, linetype = "dashed", color = "black", size = .5) +
+  geom_vline(xintercept = 0-sd_obs_d, linetype = "dashed", color = "black", size = .5) +
   facet_grid(ndvi ~ .) +
   theme_light() +
-  xlab("Deviation from observed date") +
+  xlab("Deviation from observed prediction (Phase D)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-  ggtitle("per-platform deviation (in day) from observed mean budbust date")
+  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase D)")
+ggsave("out/model_plots/method_deviations_from_obs_d.png",width = 20,height=12)
 
+means_all %>% 
+  ggplot(aes(x = bb_mean_e, y = platform, color = platform)) + 
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin=bb_mean_e-bb_sd, xmax=bb_mean_e+bb_sd), height = .3) +
+  geom_vline(xintercept = 0, linetype = "longdash", color = "black", size = .5) +
+  geom_vline(xintercept = sd_obs_e, linetype = "dashed", color = "black", size = .5) +
+  geom_vline(xintercept = 0-sd_obs_e, linetype = "dashed", color = "black", size = .5) +
+  facet_grid(ndvi ~ .) +
+  theme_light() +
+  xlab("Deviation from observed prediction (Phase E)") +
+  ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase E)")
+ggsave("out/model_plots/method_deviations_from_obs_e.png",width = 20,height=12)
 
-
-# #plotting function; all trees and single platform
-# plot_SOS_whole_forest <- function(platform = "orthomosaic", mean_ndvi_values = T){
-#   if(platform == "sentinel1"){
-#     model_fitting_out <- whole_forest_model_fitting_out_sen1
-#     models <- whole_forest_models_sen1
-#   } else {
-#     if(mean_ndvi_values == T){
-#       model_fitting_out <- whole_forest_model_fitting_out_mean
-#       models <- whole_forest_models_mean
-#     } else {
-#       model_fitting_out <- whole_forest_model_fitting_out_median
-#       models <- whole_forest_models_median
-#     } 
-#   }
-#   
-#   #select platform; one of sentinel2, orthomosaic, treetalker, planetscope
-#   platform_sel <- platform
-#   
-#   #grab a model and respective SOS, MOS, EOS data
-#   if(platform == "sentinel1"){
-#     model_sel <- models[[1]]
-#   } else {
-#     entry <- NULL
-#     for(i in 1:length(models)){
-#       if(models[[i]][["platform"]] == platform_sel){
-#         entry <- c(entry, i)
-#       }
-#     }
-#     
-#     model_sel <- models[[entry]]
-#   }
-#   
-#   if(platform == "sentinel1"){
-#     data_sel <- model_fitting_out
-#   } else {
-#     data_sel <- model_fitting_out[which(model_fitting_out$platform == platform_sel),]
-#   }  
-#   
-#   #prepare data for plots
-#   ndvidat <- model_sel$ndvidat
-#   doylist <- model_sel$doylist
-#   fitmodel <- model_sel$model
-#   platform <- model_sel$platform
-#   #tree <- model_sel$tree
-#   preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
-#   predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
-#   
-#   #x- and y-axis limits
-#   if(platform == "sentinel1"){
-#     load("out/all_in_one/sentinel1_daily_sigma_ratio_all_trees.RData")
-#     xlim_min <- min(unique(sen1_all_tree_means$doy))
-#     xlim_max <- max(unique(sen1_all_tree_means$doy))
-#     ylim_min <- min(unique(sen1_all_tree_means$sigma_ratio_mean))
-#     ylim_max <- max(unique(sen1_all_tree_means$sigma_ratio_mean))
-#   } else {
-#     load("out/all_in_one/aio_daily_ndvi_per_tree_means.RData")
-#     aio <- aio_daily_ndvi_means;rm(aio_daily_ndvi_means)
-#     aio <- aio[-which(aio$date > as.Date("2021-07-01")),]
-#     
-#     xlim_min <- yday(min(unique(aio$date)))
-#     xlim_max <- yday(max(unique(aio$date)))
-#     ylim_min <- min(unique(aio$ndvi_mean))
-#     ylim_max <- max(unique(aio$ndvi_mean))
-#   }
-#   
-#   # plot with budburst start date
-#   
-#   plot_out <- ggplot() +
-#     geom_point(aes(doylist, ndvidat)) +
-#     geom_line(aes(doylist,predNDVImod)) +
-#     #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
-#     geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-#     # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-#     #               y = min(ndvidat),
-#     #               label = c("SOS","MOS","EOS"),
-#     #               vjust = 0,
-#     #               angle = 90)) +
-#     geom_text(aes(x = data_sel$SOS,
-#                   y = min(ndvidat),
-#                   label = "predicted",
-#                   vjust = 0,
-#                   angle = 90)) +
-#     geom_vline(xintercept = budburst_mean_observation, linetype = "longdash", color = "red", size = .5) +
-#     geom_text(aes(x = budburst_mean_observation,
-#                   y = max(ndvidat),
-#                   label = "OBS",
-#                   vjust = 0,
-#                   angle = 90)) +
-#     xlim(xlim_min, xlim_max) +
-#     ylim(ylim_min, ylim_max) +
-#     theme_light() +
-#     xlab("Day of Year") +
-#     ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-#     ggtitle(platform_sel)
-#   
-#   return(plot_out)
-# }
-# 
-# #plot mean budburst date over all trees
-# plot_SOS_whole_forest(platform = "sentinel1", mean_ndvi_values = T)
-# 
-# one <- plot_SOS_whole_forest(platform = "orthomosaic", mean_ndvi_values = T)
-# two <- plot_SOS_whole_forest(platform = "planetscope", mean_ndvi_values = T)
-# three <- plot_SOS_whole_forest(platform = "treetalker", mean_ndvi_values = T)
-# four <- plot_SOS_whole_forest(platform = "sentinel2", mean_ndvi_values = T)
-# five  <- plot_SOS_whole_forest(platform = "sentinel1", mean_ndvi_values = T)
-# ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
-# 
-# one <- plot_SOS_whole_forest(platform = "orthomosaic", mean_ndvi_values = F)
-# two <- plot_SOS_whole_forest(platform = "planetscope", mean_ndvi_values = F)
-# three <- plot_SOS_whole_forest(platform = "treetalker", mean_ndvi_values = F)
-# four <- plot_SOS_whole_forest(platform = "sentinel2", mean_ndvi_values = F)
-# five  <- plot_SOS_whole_forest(platform = "sentinel1", mean_ndvi_values = F)
-# ggpubr::ggarrange(one,two,three,four,five, ncol = 2, nrow = 3)
+means_all %>% 
+  ggplot(aes(x = bb_mean_f, y = platform, color = platform)) + 
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin=bb_mean_f-bb_sd, xmax=bb_mean_f+bb_sd), height = .3) +
+  geom_vline(xintercept = 0, linetype = "longdash", color = "black", size = .5) +
+  geom_vline(xintercept = sd_obs_f, linetype = "dashed", color = "black", size = .5) +
+  geom_vline(xintercept = 0-sd_obs_f, linetype = "dashed", color = "black", size = .5) +
+  facet_grid(ndvi ~ .) +
+  theme_light() +
+  xlab("Deviation from observed prediction (Phase F)") +
+  ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
+  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase F)")
+ggsave("out/model_plots/method_deviations_from_obs_f.png",width = 20,height=12)
