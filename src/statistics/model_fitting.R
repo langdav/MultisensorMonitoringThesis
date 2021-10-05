@@ -193,12 +193,12 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             
             #first derivation: slope
             # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
-            # firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
+            firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
             
             #second derivation: curvature
             # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
-            # secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
-            # curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+            secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
+            curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
             
             #curvature change rate (= first derivation)
             #firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
@@ -209,7 +209,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             #   scale_x_continuous(breaks = round(seq(min(doylist), max(doylist), by = 1),1))
             
             #change of curvature
-            #ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
+            ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
             
             #plot
             # ggplot() +
@@ -219,36 +219,45 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             #   scale_y_continuous(breaks = seq(0, 100, by = 5)) +
             #   geom_line(aes(preddoylist,firstDerivNDVImod),colour = "red") +
             #   geom_line(aes(preddoylist,secondDerivNDVImod),colour = "blue") +
-            #   geom_line(aes(preddoylist,firstDerivCurv*1000)) +
-            #   geom_line(aes(preddoylist, ROCcurvature*1000),colour = "green") +
+            #   geom_line(aes(preddoylist,firstDerivCurv*10),colour = "red") +
+            #   geom_line(aes(preddoylist, ROCcurvature*10),colour = "green") +
             #   geom_vline(xintercept = preddoylist[which(secondDerivNDVImod == max(secondDerivNDVImod))]) +
             #   geom_vline(xintercept = preddoylist[which(secondDerivNDVImod == min(secondDerivNDVImod))]) +
             #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == max(secondDerivNDVImod))]) +
             #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == min(secondDerivNDVImod))])
             
             # old way of finding SOS
-            # diff(ROCcurvature) = amount of change of curvature between two points
-            # sign(diff(ROCcurvature)) = positive (1) or negative (-1) change of curvature between two points
-            # which(diff(sign(diff(ROCcurvature)))==-2) = point where curvature changes from positive to negative (or the other way around)
-            # SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
-            # MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
-            # EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
+            # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
+            # MOS <- preddoylist[which.min(ROCcurvature)]
+            # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
             
-            # new way of finding SOS
-            # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
-            SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
-            MOS <- preddoylist[which.min(firstDerivCurv)]
-            EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
-            
-            model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                     tree_id = tree,
-                                                                     SOS = SOS,
-                                                                     MOS = MOS,
-                                                                     EOS = EOS,
-                                                                     RSE = modsum$sigma,
-                                                                     no_data = F,
-                                                                     warning = F,
-                                                                     error = F)) #residualSTDerror
+            if(all(is.na(firstDerivCurv)==T)){
+              model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
+                                                                       tree_id = tree,
+                                                                       SOS = NA,
+                                                                       MOS = NA,
+                                                                       EOS = NA,
+                                                                       RSE = modsum$sigma,
+                                                                       no_data = F,
+                                                                       warning = F,
+                                                                       error = F)) #residualSTDerror
+            } else {
+              # new way of finding SOS
+              # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
+              SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
+              MOS <- preddoylist[which.min(firstDerivCurv)]
+              EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
+              
+              model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
+                                                                       tree_id = tree,
+                                                                       SOS = SOS,
+                                                                       MOS = MOS,
+                                                                       EOS = EOS,
+                                                                       RSE = modsum$sigma,
+                                                                       no_data = F,
+                                                                       warning = F,
+                                                                       error = F)) #residualSTDerror
+            }
             
             models[[countvar]] <- list(platform = platform, 
                                        tree_id = tree,
@@ -256,6 +265,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                        ndvi_sd <- if(mean == T & median == F){sd} else {NA},
                                        doylist = doylist,
                                        model = fitmodel)
+            
             countvar <- countvar+1
           }
         }
@@ -363,36 +373,56 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
           
           # predict values of days, that are not present in the images, based on lgistic function "fitmodel"
           preddoylist <- seq(doystart,doyend,1)
-          predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
+          predNDVImod <- predict(fitmodel,data.frame(doylist=preddoylist))
           
           #first derivation: slope
-          # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
-          firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2)
+          #firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
+          firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
           
           #second derivation: curvature
-          # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
-          secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2))
+          #secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
+          secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
           curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
           
+          #curvature change rate (= first derivation)
+          #firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
+          firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
+          
           #change of curvature
-          ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
+          ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
           
-          # diff(ROCcurvature) = amount of change of curvature between two points
-          # sign(diff(ROCcurvature)) = positive (1) or negative (-1) change of curvature between two points
-          # which(diff(sign(diff(ROCcurvature)))==-2) = point where curvature changes from positive to negative (or the other way around)
-          SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
-          MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
-          EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
+          # old way of finding SOS
+          # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
+          # MOS <- preddoylist[which.min(ROCcurvature)]
+          # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
           
-          model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
-                                                                   tree_id = tree,
-                                                                   SOS = SOS,
-                                                                   MOS = MOS,
-                                                                   EOS = EOS,
-                                                                   RSE = modsum$sigma,
-                                                                   no_data = F,
-                                                                   warning = F,
-                                                                   error = F)) #residualSTDerror
+          if(all(is.na(firstDerivCurv)==T)){
+            model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
+                                                                     tree_id = tree,
+                                                                     SOS = NA,
+                                                                     MOS = NA,
+                                                                     EOS = NA,
+                                                                     RSE = modsum$sigma,
+                                                                     no_data = F,
+                                                                     warning = F,
+                                                                     error = F)) #residualSTDerror
+          } else {
+            # new way of finding SOS
+            # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
+            SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
+            MOS <- preddoylist[which.min(firstDerivCurv)]
+            EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
+            
+            model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
+                                                                     tree_id = tree,
+                                                                     SOS = SOS,
+                                                                     MOS = MOS,
+                                                                     EOS = EOS,
+                                                                     RSE = modsum$sigma,
+                                                                     no_data = F,
+                                                                     warning = F,
+                                                                     error = F)) #residualSTDerror
+          }
           
           models[[countvar]] <- list(platform = "sentinel1", 
                                      tree_id = tree,
@@ -400,6 +430,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                      ndvi_sd = NA,
                                      doylist = doylist,
                                      model = fitmodel)
+          
           countvar <- countvar+1
         }
       }
@@ -420,7 +451,7 @@ models_median <- model_fitting(dataset = aio_median, mean = F, median = T, retur
 model_fitting_out_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, return_models = F, sentinel1 = T)
 models_sen1 <- model_fitting(dataset = sen1_backscatter, mean = T, median = F,return_models = T, sentinel1 = T)
 
-  #look at some of those models
+#look at some of those models
 i <- 165
 ndvidat <- models_mean[[i]]$ndvidat;doylist <- models_mean[[i]]$doylist;fitmodel <- models_mean[[i]]$model;plot(ndvidat ~ doylist, main = models_mean[[i]]$platform);curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)  
 
@@ -431,15 +462,27 @@ ndvidat <- models_sen1[[i]]$ndvidat;doylist <- models_sen1[[i]]$doylist;fitmodel
 
 
 #for each tree, add doy of manually observed budburst
-budburst <- read.csv("data/budburst_data/budburst_long.csv")
-budburst$budburst_obervation_doy <- yday(budburst$date)
-budburst <- budburst[which(budburst$budburst==T),c("tree_id","budburst_obervation_doy","budburst_perc")]
-budburst <- budburst[!duplicated(budburst$tree_id),]
+# budburst <- read.csv("data/budburst_data/budburst_long.csv")
+# budburst$budburst_obervation_doy <- yday(budburst$date)
+# budburst <- budburst[which(budburst$budburst==T),c("tree_id","budburst_obervation_doy","budburst_perc")]
+# budburst <- budburst[!duplicated(budburst$tree_id),]
+# 
+# model_fitting_out_all <- merge(model_fitting_out_all, budburst, by = "tree_id", all.x =T)
+# model_fitting_out_mean <- merge(model_fitting_out_mean, budburst, by = "tree_id", all.x =T)
+# model_fitting_out_median <- merge(model_fitting_out_median, budburst, by = "tree_id", all.x =T)
+# model_fitting_out_sen1 <- merge(model_fitting_out_sen1, budburst, by = "tree_id", all.x =T)
 
-model_fitting_out_all <- merge(model_fitting_out_all, budburst, by = "tree_id", all.x =T)
-model_fitting_out_mean <- merge(model_fitting_out_mean, budburst, by = "tree_id", all.x =T)
-model_fitting_out_median <- merge(model_fitting_out_median, budburst, by = "tree_id", all.x =T)
-model_fitting_out_sen1 <- merge(model_fitting_out_sen1, budburst, by = "tree_id", all.x =T)
+#add predicted budburst from observations
+load("out/log_function_models/budburst_fitted_models_output.RData")
+obs_budburst <- merge(budburst_model_fitting_out[which(budburst_model_fitting_out$phase == "phase_d"),c(2,3)],
+                      budburst_model_fitting_out[which(budburst_model_fitting_out$phase == "phase_e"),c(2,3)],by="tree_id")
+obs_budburst <- merge(obs_budburst, budburst_model_fitting_out[which(budburst_model_fitting_out$phase == "phase_f"),c(2,3)],by="tree_id")
+colnames(obs_budburst) <- c("tree_id", "SOS_phase_d", "SOS_phase_e", "SOS_phase_f")
+
+model_fitting_out_all <- merge(model_fitting_out_all, obs_budburst, by = "tree_id", all.x =T)
+model_fitting_out_mean <- merge(model_fitting_out_mean, obs_budburst, by = "tree_id", all.x =T)
+model_fitting_out_median <- merge(model_fitting_out_median, obs_budburst, by = "tree_id", all.x =T)
+model_fitting_out_sen1 <- merge(model_fitting_out_sen1, obs_budburst, by = "tree_id", all.x =T)
 
 #save results
 save(model_fitting_out_all, file = "out/log_function_models/all_values_fitted_models_output.RData")
@@ -451,261 +494,3 @@ save(models_all, file = "out/log_function_models/all_values_fitted_models.RData"
 save(models_mean, file = "out/log_function_models/mean_fitted_models.RData")
 save(models_median, file = "out/log_function_models/median_fitted_models.RData")
 save(models_sen1, file = "out/log_function_models/sentinel1_fitted_models.RData")
-
-
-
-#fit models for NDVI and sigma ratio means over all trees
-load("out/all_in_one/sentinel1_daily_sigma_ratio_all_trees.RData")
-load("out/all_in_one/aio_daily_ndvi_all_trees_means.RData")
-load("out/all_in_one/aio_daily_ndvi_all_trees_medians.RData")
-
-whole_forest_model_fitting <- function(dataset = aio_all_tree_means, return_models = F, sentinel1 = F){
-  #perform model fitting and extract SOS, MOS and EOS values from fitted model
-  model_fitting_out <- NULL
-  models <- list()
-  countvar <- 1
-  
-  aio <- dataset
-  
-  if(sentinel1 == F){
-    #iterate through platforms
-    for(platform in unique(aio$platform)){
-      
-      SOSdoy <- list()
-      platform_data_only <- aio[aio$platform == platform,]
-      
-      ntrees = 50
-      SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
-      
-      
-      #get doys; as not all trees are present in some of the orthomosaics, the doylist is extracted tree-specific
-      doylist <- sort(platform_data_only$doy)
-      doystart <- head(doylist,1)
-      doyend <- tail(doylist,1)
-      
-      ndvidat <- platform_data_only$ndvi_mean
-      
-      if(length(ndvidat) == 0){
-        print(paste('not data for platform ',platform))
-        model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                 SOS = NA,
-                                                                 MOS = NA,
-                                                                 EOS = NA,
-                                                                 RSE = NA,
-                                                                 no_data = T,
-                                                                 warning = F,
-                                                                 error = F)) #residualSTDerror
-        
-        models[[countvar]] <- list(platform = platform, ndvidat = NA, doylist = NA, model = NA)
-        countvar <- countvar+1
-      } else {
-        
-        # see, if model can be calculated; if not, move on
-        tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=0.6,b=0.01,c=1,d=0)),error=function(e) e, warning=function(w) w)
-        
-        if(is(tt,'warning')){
-          print(paste('warning at platform ',platform))
-          model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                   SOS = NA,
-                                                                   MOS = NA,
-                                                                   EOS = NA,
-                                                                   RSE = NA,
-                                                                   no_data = F,
-                                                                   warning = T,
-                                                                   error = F)) #residualSTDerror
-          
-          models[[countvar]] <- list(platform = platform, ndvidat = ndvidat, doylist = doylist, model = NA)
-          countvar <- countvar+1
-        } else if(is(tt,'error')){
-          print(paste('error at platform ',platform))
-          model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                   SOS = NA,
-                                                                   MOS = NA,
-                                                                   EOS = NA,
-                                                                   RSE = NA,
-                                                                   no_data = F,
-                                                                   warning = F,
-                                                                   error = T)) #residualSTDerror
-          
-          models[[countvar]] <- list(platform = platform, ndvidat = ndvidat, doylist = doylist, model = NA)
-          countvar <- countvar+1
-        } else {
-          # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
-          # it uses the Levenberg-Marquardt (https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) algorithm instead of Gauss-Newton
-          fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=0.6,b=0.01,c=1,d=0))
-          
-          #plot(ndvidat ~ doylist)
-          #curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)
-          
-          #get model coefficients
-          modsum <- summary(fitmodel) #all parameters significant
-          a <- modsum$parameters[1]
-          b <- modsum$parameters[2]
-          c <- modsum$parameters[3]
-          d <- modsum$parameters[4]
-          
-          # predict values of days, that are not present in the images, based on lgistic function "fitmodel"
-          preddoylist <- seq(doystart,doyend,1)
-          predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
-          
-          #first derivation: slope
-          firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
-          
-          #second derivation: curvature
-          secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
-          curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
-          
-          #change of curvature
-          ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
-          
-          # diff(ROCcurvature) = amount of change of curvature between two points
-          # sign(diff(ROCcurvature)) = positive (1) or negative (-1) change of curvature between two points
-          # which(diff(sign(diff(ROCcurvature)))==-2) = point where curvature changes from positive to negative (or the other way around)
-          SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
-          MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
-          EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
-          
-          model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
-                                                                   SOS = SOS,
-                                                                   MOS = MOS,
-                                                                   EOS = EOS,
-                                                                   RSE = modsum$sigma,
-                                                                   no_data = F,
-                                                                   warning = F,
-                                                                   error = F)) #residualSTDerror
-          
-          models[[countvar]] <- list(platform = platform, ndvidat = ndvidat, doylist = doylist, model = fitmodel)
-          countvar <- countvar+1
-        }
-      }
-    }
-  } else {
-    
-    SOSdoy <- list()
-    ntrees = 50
-    SOSdoymat <- matrix(NA,nrow=1,ncol=ntrees)
-    
-    #starting values
-    a_start <- 5
-    b_start <- 0.5
-    c_start <- 120
-    d_start <- 5
-    
-    #get doys; as not all trees are present in some of the orthomosaics, the doylist is extracted tree-specific
-    doylist <- sort(aio$doy)
-    doystart <- head(doylist,1)
-    doyend <- tail(doylist,1)
-    
-    ndvidat <- aio$sigma_ratio_mean
-    
-    if(length(ndvidat) == 0){
-      model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
-                                                               SOS = NA,
-                                                               MOS = NA,
-                                                               EOS = NA,
-                                                               RSE = NA,
-                                                               no_data = T,
-                                                               warning = F,
-                                                               error = F)) #residualSTDerror
-      
-      models[[countvar]] <- list(platform = "sentinel1", ndvidat = NA, doylist = NA, model = NA)
-      countvar <- countvar+1
-    } else {
-      # see, if model can be calculated; if not, move on
-      tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 500),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
-      
-      if(is(tt,'warning')){
-        print(paste('warning at platform ',"sentinel1"))
-        model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
-                                                                 SOS = NA,
-                                                                 MOS = NA,
-                                                                 EOS = NA,
-                                                                 RSE = NA,
-                                                                 no_data = F,
-                                                                 warning = T,
-                                                                 error = F)) #residualSTDerror
-        
-        models[[countvar]] <- list(platform = "sentinel1", ndvidat = ndvidat, doylist = doylist, model = NA)
-        countvar <- countvar+1
-      } else if(is(tt,'error')){
-        print(paste('error at platform ',"sentinel1"))
-        model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
-                                                                 SOS = NA,
-                                                                 MOS = NA,
-                                                                 EOS = NA,
-                                                                 RSE = NA,
-                                                                 no_data = F,
-                                                                 warning = F,
-                                                                 error = T)) #residualSTDerror
-        
-        models[[countvar]] <- list(platform = "sentinel1", ndvidat = ndvidat, doylist = doylist, model = NA)
-        countvar <- countvar+1
-      } else {
-        # minpack.lm isneeded for the use of minpack.lm::nlsLM() instead of stats::nls(), as it is more robust to bad starting values (and I couldn't find good ones)
-        # it uses the Levenberg-Marquardt (https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm) algorithm instead of Gauss-Newton
-        fitmodel <- minpack.lm::nlsLM(ndvidat ~ a/(1 + exp(-b * (doylist-c))) + d,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
-        
-        #plot(ndvidat ~ doylist)
-        #curve(predict(fitmodel, newdata = data.frame(doylist = x)), add = TRUE)
-        
-        #get model coefficients
-        modsum <- summary(fitmodel)
-        a <- modsum$parameters[1]
-        b <- modsum$parameters[2]
-        c <- modsum$parameters[3]
-        d <- modsum$parameters[4]
-        
-        # predict values of days, that are not present in the images, based on lgistic function "fitmodel"
-        preddoylist <- seq(doystart,doyend,1)
-        predNDVImod <- predict(fitmodel,data.frame(doylistcurrent=preddoylist))
-        
-        #first derivation: slope
-        firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2
-        
-        #second derivation: curvature
-        secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2))
-        curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
-        
-        #change of curvature
-        ROCcurvature <- c(curvature[2:(doyend-doystart+1)],NA)-curvature 
-        
-        # diff(ROCcurvature) = amount of change of curvature between two points
-        # sign(diff(ROCcurvature)) = positive (1) or negative (-1) change of curvature between two points
-        # which(diff(sign(diff(ROCcurvature)))==-2) = point where curvature changes from positive to negative (or the other way around)
-        SOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[1]]#get DOY of ROC local maximum 1
-        MOS <- preddoylist[firstDerivNDVImod==max(firstDerivNDVImod,na.rm=TRUE)]
-        EOS <- preddoylist[(which(diff(sign(diff(ROCcurvature)))==-2)+1)[2]]#get DOY of ROC local maximum 2
-        
-        model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
-                                                                 SOS = SOS,
-                                                                 MOS = MOS,
-                                                                 EOS = EOS,
-                                                                 RSE = modsum$sigma,
-                                                                 no_data = F,
-                                                                 warning = F,
-                                                                 error = F)) #residualSTDerror
-        
-        models[[countvar]] <- list(platform = "sentinel1", ndvidat = ndvidat, doylist = doylist, model = fitmodel)
-        countvar <- countvar+1
-      }
-    }
-  }
-  model_fitting_out <- model_fitting_out[!duplicated(model_fitting_out[,c(1,2)]),]
-  ifelse(return_models == T,return(models),return(model_fitting_out))
-}
-
-whole_forest_model_fitting_out_mean <- whole_forest_model_fitting(dataset = aio_all_tree_means, return_models = F, sentinel1 = F)
-whole_forest_model_fitting_out_median <- whole_forest_model_fitting(dataset = aio_all_tree_medians, return_models = F, sentinel1 = F)
-whole_forest_models_mean <- whole_forest_model_fitting(dataset = aio_all_tree_means, return_models = T, sentinel1 = F)
-whole_forest_models_median <- whole_forest_model_fitting(dataset = aio_all_tree_medians, return_models = T, sentinel1 = F)
-
-whole_forest_model_fitting_out_sen1 <- whole_forest_model_fitting(dataset = sen1_all_tree_means, return_models = F, sentinel1 = T)
-whole_forest_models_sen1 <- whole_forest_model_fitting(dataset = sen1_all_tree_means, return_models = T, sentinel1 = T)
-
-#save results
-save(whole_forest_model_fitting_out_mean, file = "out/log_function_models/whole_forest_mean_fitted_models_output.RData")
-save(whole_forest_model_fitting_out_median, file = "out/log_function_models/whole_forest_median_fitted_models_output.RData")
-save(whole_forest_model_fitting_out_sen1, file = "out/log_function_models/whole_forest_sentinel1_fitted_models_output.RData")
-save(whole_forest_models_mean, file = "out/log_function_models/whole_forest_mean_fitted_models.RData")
-save(whole_forest_models_median, file = "out/log_function_models/whole_forest_median_fitted_models.RData")
-save(whole_forest_models_sen1, file = "out/log_function_models/whole_forest_sentinel1_fitted_models.RData")
