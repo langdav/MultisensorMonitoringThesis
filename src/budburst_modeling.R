@@ -105,30 +105,44 @@ for(phase in colnames(budburst_new)[4:6]){
       
       #curvature change rate (= first derivation)
       # firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
-      # firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
+      firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
       
       #change of curvature
       ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
       
-      # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
-      # SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
-      # MOS <- preddoylist[which.min(firstDerivCurv)]
-      # EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
-      
       # old way of finding SOS
-      SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
-      MOS <- preddoylist[which.min(ROCcurvature)]
-      EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
+      # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
+      # MOS <- preddoylist[which.min(ROCcurvature)]
+      # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
+      # 
       
-      model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
-                                                               tree_id = tree,
-                                                               SOS = SOS,
-                                                               MOS = MOS,
-                                                               EOS = EOS,
-                                                               RSE = modsum$sigma,
-                                                               no_data = F,
-                                                               warning = F,
-                                                               error = F)) #residualSTDerror
+      if(all(is.na(firstDerivCurv)==T)){
+        model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
+                                                                 tree_id = tree,
+                                                                 SOS = NA,
+                                                                 MOS = NA,
+                                                                 EOS = NA,
+                                                                 RSE = modsum$sigma,
+                                                                 no_data = F,
+                                                                 warning = F,
+                                                                 error = F)) #residualSTDerror
+      } else {
+        # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
+        SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
+        MOS <- preddoylist[which.min(firstDerivCurv)]
+        EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
+        
+        
+        model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
+                                                                 tree_id = tree,
+                                                                 SOS = SOS,
+                                                                 MOS = MOS,
+                                                                 EOS = EOS,
+                                                                 RSE = modsum$sigma,
+                                                                 no_data = F,
+                                                                 warning = F,
+                                                                 error = F)) #residualSTDerror
+      }
       
       models[[countvar]] <- list(phase = phase,
                                  tree_id = tree,
@@ -150,7 +164,7 @@ save(budburst_model_fitting_out, file = "out/log_function_models/budburst_fitted
 save(budbust_models, file = "out/log_function_models/budburst_fitted_models.RData")
 
 #plotting
-plot_SOS <- function(phase = "phase_d", tree = 2){
+plot_SOS <- function(phase = "phase_d", tree = 10){
   #x- and y-axis limits
   xlim_min <- min(unique(budburst_new$doy))
   xlim_max <- max(unique(budburst_new$doy))
@@ -226,7 +240,7 @@ plot_SOS <- function(phase = "phase_d", tree = 2){
 }
 
 #plot single tree in single phase
-plot_SOS(phase = "phase_e", tree = 10)
+plot_SOS(phase = "phase_d", tree = 10)
 
 #plot all trees and all phases
 for(phase in colnames(budburst_new)[4:6]){
@@ -240,11 +254,3 @@ for(phase in colnames(budburst_new)[4:6]){
   #all_trees_panel
   ggsave(paste0("out/model_plots/budburst_obs_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
 }
-
-
-
-
-
-
-
-
