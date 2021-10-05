@@ -18,6 +18,7 @@ treetalker_ndvi_all$platform <- rep("treetalker", nrow(treetalker_ndvi_all))
 orthomosaic_ndvi_all$platform <- rep("orthomosaic", nrow(orthomosaic_ndvi_all))
 
 aio_daily_ndvi_all <- rbind(planetscope_ndvi_all, sen2_ndvi_all, treetalker_ndvi_all, orthomosaic_ndvi_all)
+aio_daily_ndvi_all$doy <- yday(aio_daily_ndvi_all$date)
 
 save(aio_daily_ndvi_all, file = "out/all_in_one/aio_daily_ndvi_all.RData")
 
@@ -33,6 +34,7 @@ treetalker_mean$platform <- rep("treetalker", nrow(treetalker_mean))
 orthomosaic_mean$platform <- rep("orthomosaic", nrow(orthomosaic_mean))
 
 aio_daily_ndvi_means <- rbind(planetscope_mean, sen2_mean, treetalker_mean, orthomosaic_mean)
+aio_daily_ndvi_means$doy <- yday(aio_daily_ndvi_means$date)
 
 # daily means over all trees per platform
 aio_all_tree_means <- NULL
@@ -69,6 +71,7 @@ treetalker_median$platform <- rep("treetalker", nrow(treetalker_median))
 orthomosaic_median$platform <- rep("orthomosaic", nrow(orthomosaic_median))
 
 aio_daily_ndvi_medians <- rbind(planetscope_median, sen2_median, treetalker_median, orthomosaic_median)
+aio_daily_ndvi_medians$doy <- yday(aio_daily_ndvi_medians$date)
 
 # daily means over all trees per platform
 aio_all_tree_medians <- NULL
