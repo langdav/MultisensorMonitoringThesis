@@ -11,43 +11,89 @@ load("out/log_function_models/all_values_fitted_models_output.RData")
 load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/median_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
-
+load("out/log_function_models/budburst_fitted_models_output.RData")
 
 #calculate MBE and MAD
-model_fitting_out_all$MBE <- model_fitting_out_all$SOS - model_fitting_out_all$budburst_obervation_doy
-model_fitting_out_mean$MBE <- model_fitting_out_mean$SOS - model_fitting_out_mean$budburst_obervation_doy
-model_fitting_out_median$MBE <- model_fitting_out_median$SOS - model_fitting_out_median$budburst_obervation_doy
-model_fitting_out_sen1$MBE <- model_fitting_out_sen1$SOS - model_fitting_out_sen1$budburst_obervation_doy
+model_fitting_out_all$MBE_d <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_d
+model_fitting_out_all$MBE_e <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_e
+model_fitting_out_all$MBE_f <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_f
+model_fitting_out_mean$MBE_d <- model_fitting_out_mean$SOS - model_fitting_out_mean$SOS_phase_d
+model_fitting_out_mean$MBE_e <- model_fitting_out_mean$SOS - model_fitting_out_mean$SOS_phase_e
+model_fitting_out_mean$MBE_f <- model_fitting_out_mean$SOS - model_fitting_out_mean$SOS_phase_f
+model_fitting_out_median$MBE_d <- model_fitting_out_median$SOS - model_fitting_out_median$SOS_phase_d
+model_fitting_out_median$MBE_e <- model_fitting_out_median$SOS - model_fitting_out_median$SOS_phase_e
+model_fitting_out_median$MBE_f <- model_fitting_out_median$SOS - model_fitting_out_median$SOS_phase_f
+model_fitting_out_sen1$MBE_d <- model_fitting_out_sen1$SOS - model_fitting_out_sen1$SOS_phase_d
+model_fitting_out_sen1$MBE_e <- model_fitting_out_sen1$SOS - model_fitting_out_sen1$SOS_phase_e
+model_fitting_out_sen1$MBE_f <- model_fitting_out_sen1$SOS - model_fitting_out_sen1$SOS_phase_f
 
 mbe_mad <- NULL
 for(platform in unique(model_fitting_out_mean$platform)){
-  mbe_tmp_mean <- round(sum(model_fitting_out_mean$MBE[model_fitting_out_mean$platform==platform], na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
-  mad_tmp_mean <- round(sum(abs(model_fitting_out_mean$MBE[model_fitting_out_mean$platform==platform]), na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
-  mbe_tmp_median <- round(sum(model_fitting_out_median$MBE[model_fitting_out_median$platform==platform], na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
-  mad_tmp_median <- round(sum(abs(model_fitting_out_median$MBE[model_fitting_out_median$platform==platform]), na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
-  mbe_tmp_all <- round(sum(model_fitting_out_all$MBE[model_fitting_out_all$platform==platform], na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
-  mad_tmp_all <- round(sum(abs(model_fitting_out_all$MBE[model_fitting_out_all$platform==platform]), na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mbe_d_tmp_mean <- round(sum(model_fitting_out_mean$MBE_d[model_fitting_out_mean$platform==platform], na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
+  mbe_e_tmp_mean <- round(sum(model_fitting_out_mean$MBE_e[model_fitting_out_mean$platform==platform], na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
+  mbe_f_tmp_mean <- round(sum(model_fitting_out_mean$MBE_f[model_fitting_out_mean$platform==platform], na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
+  mad_d_tmp_mean <- round(sum(abs(model_fitting_out_mean$MBE_d[model_fitting_out_mean$platform==platform]), na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
+  mad_e_tmp_mean <- round(sum(abs(model_fitting_out_mean$MBE_e[model_fitting_out_mean$platform==platform]), na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
+  mad_f_tmp_mean <- round(sum(abs(model_fitting_out_mean$MBE_f[model_fitting_out_mean$platform==platform]), na.rm = T) / nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]),2)
   
+  mbe_d_tmp_median <- round(sum(model_fitting_out_median$MBE_d[model_fitting_out_median$platform==platform], na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  mbe_e_tmp_median <- round(sum(model_fitting_out_median$MBE_e[model_fitting_out_median$platform==platform], na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  mbe_f_tmp_median <- round(sum(model_fitting_out_median$MBE_f[model_fitting_out_median$platform==platform], na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  mad_d_tmp_median <- round(sum(abs(model_fitting_out_median$MBE_d[model_fitting_out_median$platform==platform]), na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  mad_e_tmp_median <- round(sum(abs(model_fitting_out_median$MBE_e[model_fitting_out_median$platform==platform]), na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  mad_f_tmp_median <- round(sum(abs(model_fitting_out_median$MBE_f[model_fitting_out_median$platform==platform]), na.rm = T) / nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]),2)
+  
+  mbe_d_tmp_all <- round(sum(model_fitting_out_all$MBE_d[model_fitting_out_all$platform==platform], na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mbe_e_tmp_all <- round(sum(model_fitting_out_all$MBE_e[model_fitting_out_all$platform==platform], na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mbe_f_tmp_all <- round(sum(model_fitting_out_all$MBE_f[model_fitting_out_all$platform==platform], na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mad_d_tmp_all <- round(sum(abs(model_fitting_out_all$MBE_d[model_fitting_out_all$platform==platform]), na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mad_e_tmp_all <- round(sum(abs(model_fitting_out_all$MBE_e[model_fitting_out_all$platform==platform]), na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
+  mad_f_tmp_all <- round(sum(abs(model_fitting_out_all$MBE_f[model_fitting_out_all$platform==platform]), na.rm = T) / nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]),2)
   
   mbe_mad <- rbind(mbe_mad, data.frame(platform = platform,
                                        ndvi_mean_median = "mean",
-                                       mbe = mbe_tmp_mean,
-                                       mad = mad_tmp_mean))
+                                       mbe_d = mbe_d_tmp_mean,
+                                       mad_d = mad_d_tmp_mean,
+                                       mbe_e = mbe_e_tmp_mean,
+                                       mad_e = mad_e_tmp_mean,
+                                       mbe_f = mbe_f_tmp_mean,
+                                       mad_f = mad_f_tmp_mean,
+                                       n_predictions = length(which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)])==F))))
   mbe_mad <- rbind(mbe_mad, data.frame(platform = platform,
                                        ndvi_mean_median = "median",
-                                       mbe = mbe_tmp_median,
-                                       mad = mad_tmp_median))
+                                       mbe_d = mbe_d_tmp_median,
+                                       mad_d = mad_d_tmp_median,
+                                       mbe_e = mbe_e_tmp_median,
+                                       mad_e = mad_e_tmp_median,
+                                       mbe_f = mbe_f_tmp_median,
+                                       mad_f = mad_f_tmp_median,
+                                       n_predictions = length(which(is.na(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)])==F))))
   mbe_mad <- rbind(mbe_mad, data.frame(platform = platform,
                                        ndvi_mean_median = "all_values",
-                                       mbe = mbe_tmp_all,
-                                       mad = mad_tmp_all))
+                                       mbe_d = mbe_d_tmp_all,
+                                       mad_d = mad_d_tmp_all,
+                                       mbe_e = mbe_e_tmp_all,
+                                       mad_e = mad_e_tmp_all,
+                                       mbe_f = mbe_f_tmp_all,
+                                       mad_f = mad_f_tmp_all,
+                                       n_predictions = length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)])==F))))
 }
-mbe_tmp_sen1 <- round(sum(model_fitting_out_sen1$MBE, na.rm = T) / nrow(model_fitting_out_sen1),2)
-mad_tmp_sen1 <- round(sum(abs(model_fitting_out_sen1$MBE), na.rm = T) / nrow(model_fitting_out_sen1),2)
+
+mbe_d_tmp_sen1 <- round(sum(model_fitting_out_sen1$MBE_d, na.rm = T) / nrow(model_fitting_out_sen1),2)
+mad_d_tmp_sen1 <- round(sum(abs(model_fitting_out_sen1$MBE_d), na.rm = T) / nrow(model_fitting_out_sen1),2)
+mbe_e_tmp_sen1 <- round(sum(model_fitting_out_sen1$MBE_e, na.rm = T) / nrow(model_fitting_out_sen1),2)
+mad_e_tmp_sen1 <- round(sum(abs(model_fitting_out_sen1$MBE_e), na.rm = T) / nrow(model_fitting_out_sen1),2)
+mbe_f_tmp_sen1 <- round(sum(model_fitting_out_sen1$MBE_f, na.rm = T) / nrow(model_fitting_out_sen1),2)
+mad_f_tmp_sen1 <- round(sum(abs(model_fitting_out_sen1$MBE_f), na.rm = T) / nrow(model_fitting_out_sen1),2)
 mbe_mad <- rbind(mbe_mad, data.frame(platform = "Sentinel-1",
                                      ndvi_mean_median = NA,
-                                     mbe = mbe_tmp_sen1,
-                                     mad = mad_tmp_sen1))
+                                     mbe_d = mbe_d_tmp_sen1,
+                                     mad_d = mad_d_tmp_sen1,
+                                     mbe_e = mbe_e_tmp_sen1,
+                                     mad_e = mad_e_tmp_sen1,
+                                     mbe_f = mbe_f_tmp_sen1,
+                                     mad_f = mad_f_tmp_sen1,
+                                     n_predictions = length(which(is.na(model_fitting_out_sen1$SOS[which(model_fitting_out_sen1$platform == "sentinel1")])==F))))
 
 
 
@@ -128,7 +174,6 @@ platform <- "treetalker"
 platform <- "sentinel2"
 platform <- "planetscope"
 
-
 min(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
 max(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
 length(which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)])==F))
@@ -146,8 +191,12 @@ min(model_fitting_out_sen1$SOS, na.rm = T)
 max(model_fitting_out_sen1$SOS, na.rm = T)
 length(which(is.na(model_fitting_out_sen1$SOS)==F))
 
+#observations
+phase <- "phase_d"
+phase <- "phase_e"
+phase <- "phase_f"
 
+min(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)], na.rm = T)
+max(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)], na.rm = T)
+length(which(is.na(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)])==F))
 
-
-which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == "treetalker")])==T)
-model_fitting_out_mean[which(model_fitting_out_mean$platform == "treetalker"),]
