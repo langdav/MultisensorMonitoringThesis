@@ -226,6 +226,8 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == max(secondDerivNDVImod))]) +
             #   geom_hline(yintercept = predNDVImod[which(secondDerivNDVImod == min(secondDerivNDVImod))])
             
+            
+            
             # old way of finding SOS
             # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
             # MOS <- preddoylist[which.min(ROCcurvature)]
@@ -257,6 +259,24 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
                                                                        no_data = F,
                                                                        warning = F,
                                                                        error = F)) #residualSTDerror
+              # example plot for thesis
+              # ggplot() +
+              #   geom_line(aes(preddoylist,predNDVImod)) +
+              #   geom_point(aes(doylist,ndvidat)) +
+              #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed") +
+              #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
+              #   geom_text(aes(x = SOS-1,
+              #                 y = 0.4,
+              #                 label = "budburst",
+              #                 vjust = 0,
+              #                 angle = 90)) +
+              #   theme(panel.grid = element_blank(),
+              #         axis.title.y = element_blank(),
+              #         axis.text.y = element_blank(),
+              #         axis.ticks.y = element_blank(),
+              #         panel.background = element_blank()) +
+              #   xlab("DOY")
+              # ggsave(paste0("tmp/example_curvature_derivative.png"),width = 5,height=4)
             }
             
             models[[countvar]] <- list(platform = platform, 
