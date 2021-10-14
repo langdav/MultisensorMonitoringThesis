@@ -54,28 +54,37 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                        ndvi_mean_median = "mean",
                                        mbe_d = mbe_d_tmp_mean,
                                        mad_d = mad_d_tmp_mean,
+                                       d_vals = sum(!is.na(model_fitting_out_mean$MBE_d[model_fitting_out_mean$platform==platform])),
                                        mbe_e = mbe_e_tmp_mean,
                                        mad_e = mad_e_tmp_mean,
+                                       e_vals = sum(!is.na(model_fitting_out_mean$MBE_e[model_fitting_out_mean$platform==platform])),
                                        mbe_f = mbe_f_tmp_mean,
                                        mad_f = mad_f_tmp_mean,
+                                       f_vals = sum(!is.na(model_fitting_out_mean$MBE_f[model_fitting_out_mean$platform==platform])),
                                        n_predictions = length(which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)])==F))))
   mbe_mad <- rbind(mbe_mad, data.frame(platform = platform,
                                        ndvi_mean_median = "median",
                                        mbe_d = mbe_d_tmp_median,
                                        mad_d = mad_d_tmp_median,
+                                       d_vals = sum(!is.na(model_fitting_out_median$MBE_d[model_fitting_out_median$platform==platform])),
                                        mbe_e = mbe_e_tmp_median,
                                        mad_e = mad_e_tmp_median,
+                                       e_vals = sum(!is.na(model_fitting_out_median$MBE_e[model_fitting_out_median$platform==platform])),
                                        mbe_f = mbe_f_tmp_median,
                                        mad_f = mad_f_tmp_median,
+                                       f_vals = sum(!is.na(model_fitting_out_median$MBE_f[model_fitting_out_median$platform==platform])),
                                        n_predictions = length(which(is.na(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)])==F))))
   mbe_mad <- rbind(mbe_mad, data.frame(platform = platform,
                                        ndvi_mean_median = "all_values",
                                        mbe_d = mbe_d_tmp_all,
                                        mad_d = mad_d_tmp_all,
+                                       d_vals = sum(!is.na(model_fitting_out_all$MBE_d[model_fitting_out_all$platform==platform])),
                                        mbe_e = mbe_e_tmp_all,
                                        mad_e = mad_e_tmp_all,
+                                       e_vals = sum(!is.na(model_fitting_out_all$MBE_e[model_fitting_out_all$platform==platform])),
                                        mbe_f = mbe_f_tmp_all,
                                        mad_f = mad_f_tmp_all,
+                                       f_vals = sum(!is.na(model_fitting_out_all$MBE_f[model_fitting_out_all$platform==platform])),
                                        n_predictions = length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)])==F))))
 }
 
@@ -89,10 +98,13 @@ mbe_mad <- rbind(mbe_mad, data.frame(platform = "Sentinel-1",
                                      ndvi_mean_median = NA,
                                      mbe_d = mbe_d_tmp_sen1,
                                      mad_d = mad_d_tmp_sen1,
+                                     d_vals = sum(!is.na(model_fitting_out_sen1$MBE_d)),
                                      mbe_e = mbe_e_tmp_sen1,
                                      mad_e = mad_e_tmp_sen1,
+                                     e_vals = sum(!is.na(model_fitting_out_sen1$MBE_e)),
                                      mbe_f = mbe_f_tmp_sen1,
                                      mad_f = mad_f_tmp_sen1,
+                                     f_vals = sum(!is.na(model_fitting_out_sen1$MBE_f)),
                                      n_predictions = length(which(is.na(model_fitting_out_sen1$SOS[which(model_fitting_out_sen1$platform == "sentinel1")])==F))))
 
 
@@ -160,7 +172,7 @@ ggplot(model_fitting_out_mean,
   facet_grid(platform~., scales = "free_y") +
   theme_light() +
   xlab("Day of Year") +
-  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
+  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
 
 ggplot(model_fitting_out_mean, 
        aes(x=SOS, y=SOS_phase_e)) +
