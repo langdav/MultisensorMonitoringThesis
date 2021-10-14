@@ -116,7 +116,7 @@ for(phase in colnames(budburst_new)[4:6]){
       # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
       # 
       
-      if(all(is.na(firstDerivCurv)==T)){
+      if(any(is.na(firstDerivCurv)==T)){
         model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                  tree_id = tree,
                                                                  SOS = NA,
@@ -132,6 +132,18 @@ for(phase in colnames(budburst_new)[4:6]){
         MOS <- preddoylist[which.min(firstDerivCurv)]
         EOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[2]
         
+        # ggplot() +
+        #   geom_line(aes(preddoylist,predNDVImod)) +
+        #   geom_point(aes(doylist,perc_in_phase)) +
+        #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
+        #   geom_text(aes(x = SOS-1,
+        #                 y = 0.4,
+        #                 label = "budburst",
+        #                 vjust = 0,
+        #                 angle = 90)) +
+        #   theme_minimal() +
+        #   xlab("DOY") +
+        #   ylab("Phase D Percent")
         
         model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                  tree_id = tree,
@@ -157,11 +169,11 @@ for(phase in colnames(budburst_new)[4:6]){
 }
 
 budburst_model_fitting_out <- model_fitting_out;rm(model_fitting_out)
-budbust_models <- models;rm(models)
+budburst_models <- models;rm(models)
 
 #save models
 save(budburst_model_fitting_out, file = "out/log_function_models/budburst_fitted_models_output.RData")
-save(budbust_models, file = "out/log_function_models/budburst_fitted_models.RData")
+save(budburst_models, file = "out/log_function_models/budburst_fitted_models.RData")
 
 #plotting
 plot_SOS <- function(phase = "phase_d", tree = 10){
@@ -244,13 +256,60 @@ plot_SOS(phase = "phase_d", tree = 10)
 
 #plot all trees and all phases
 for(phase in colnames(budburst_new)[4:6]){
+  cat("Processing", phase,"images 1 to 25","\n")
   all_trees <- lapply(1:25, function(x) plot_SOS(phase = phase, tree = x))
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
   #all_trees_panel
   ggsave(paste0("out/model_plots/budburst_obs_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
   
+  cat("Processing", phase,"images 26 to 50","\n")
   all_trees <- lapply(26:50, function(x) plot_SOS(phase = phase, tree = x))
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
   #all_trees_panel
-  ggsave(paste0("out/model_plots/budburst_obs_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
+  ggsave(paste0("out/model_plots/budburst_obs_",phase,"_26_50",".png"),all_trees_panel,width = 20,height=12)
 }
+
+
+## example plot for presentation
+data_sel <- budburst_model_fitting_out[which(budburst_model_fitting_out$tree_id == "mof_cst_00005"),]
+
+ndvidat1 <- budburst_models[[5]]$perc_in_phase
+ndvidat2 <- budburst_models[[55]]$perc_in_phase
+ndvidat3 <- budburst_models[[105]]$perc_in_phase
+
+doylist <- budburst_models[[5]]$doylist
+preddoylist <- seq(head(doylist, 1),tail(doylist,1),1)
+
+predNDVImod1 <- predict(budburst_models[[5]]$model,data.frame(doylist=preddoylist))
+predNDVImod2 <- predict(budburst_models[[55]]$model,data.frame(doylist=preddoylist))
+predNDVImod3 <- predict(budburst_models[[105]]$model,data.frame(doylist=preddoylist))
+
+
+ggplot() +
+  geom_point(aes(doylist, ndvidat1),color="red") +
+  geom_line(aes(preddoylist,predNDVImod1),color="red") +
+  geom_point(aes(doylist, ndvidat2),color="blue") +
+  geom_line(aes(preddoylist,predNDVImod2),color="blue") +
+  geom_point(aes(doylist, ndvidat3),color="green") +
+  geom_line(aes(preddoylist,predNDVImod3),color="green") +
+  geom_vline(xintercept = data_sel$SOS[1], linetype = "longdash", color = "red", size = .5) +
+  geom_text(aes(x = data_sel$SOS[1],
+                y = max(ndvidat1),
+                label = "phase_d",
+                vjust = 0,
+                angle = 90)) +
+  geom_vline(xintercept = data_sel$SOS[2], linetype = "longdash", color = "blue", size = .5) +
+  geom_text(aes(x = data_sel$SOS[2],
+                y = max(ndvidat2),
+                label = "phase_e",
+                vjust = 0,
+                angle = 90)) +
+  geom_vline(xintercept = data_sel$SOS[3], linetype = "longdash", color = "green", size = .5) +
+  geom_text(aes(x = data_sel$SOS[3],
+                y = max(ndvidat3),
+                label = "phase_f",
+                vjust = 0,
+                angle = 90)) +
+  theme_light() +
+  xlab("Day of Year") +
+  ylab("Percentage")
