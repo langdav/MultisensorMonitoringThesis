@@ -193,15 +193,15 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             
             #first derivation: slope
             # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
-            firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
+            # firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
             
             #second derivation: curvature
             # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
-            secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
-            curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+            # secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
+            # curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
             
             #curvature change rate (= first derivation)
-            #firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
+            # firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
             firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
             
             # ggplot() + 
@@ -209,7 +209,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             #   scale_x_continuous(breaks = round(seq(min(doylist), max(doylist), by = 1),1))
             
             #change of curvature
-            ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
+            # ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
             
             #plot
             # ggplot() +
@@ -233,7 +233,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
             # MOS <- preddoylist[which.min(ROCcurvature)]
             # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
             
-            if(all(is.na(firstDerivCurv)==T)){
+            if(any(is.na(firstDerivCurv)==T)){
               model_fitting_out <- rbind(model_fitting_out, data.frame(platform = platform,
                                                                        tree_id = tree,
                                                                        SOS = NA,
@@ -263,6 +263,7 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
               # ggplot() +
               #   geom_line(aes(preddoylist,predNDVImod)) +
               #   geom_point(aes(doylist,ndvidat)) +
+              #   geom_errorbar(aes(x = doylist ,ymin=ndvidat-sd, ymax=ndvidat+sd), width = 1) +
               #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed") +
               #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
               #   geom_text(aes(x = SOS-1,
@@ -270,12 +271,9 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
               #                 label = "budburst",
               #                 vjust = 0,
               #                 angle = 90)) +
-              #   theme(panel.grid = element_blank(),
-              #         axis.title.y = element_blank(),
-              #         axis.text.y = element_blank(),
-              #         axis.ticks.y = element_blank(),
-              #         panel.background = element_blank()) +
-              #   xlab("DOY")
+              #   theme_minimal() +
+              #   xlab("DOY") +
+              #   ylab("NDVI")
               # ggsave(paste0("tmp/example_curvature_derivative.png"),width = 5,height=4)
             }
             
@@ -396,27 +394,27 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
           predNDVImod <- predict(fitmodel,data.frame(doylist=preddoylist))
           
           #first derivation: slope
-          #firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
-          firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
+          # firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
+          # firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
           
           #second derivation: curvature
-          #secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
-          secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
-          curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+          # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
+          # secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
+          # curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
           
           #curvature change rate (= first derivation)
           #firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
           firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
           
           #change of curvature
-          ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
+          # ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
           
           # old way of finding SOS
           # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
           # MOS <- preddoylist[which.min(ROCcurvature)]
           # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
           
-          if(all(is.na(firstDerivCurv)==T)){
+          if(any(is.na(firstDerivCurv)==T)){
             model_fitting_out <- rbind(model_fitting_out, data.frame(platform = "sentinel1",
                                                                      tree_id = tree,
                                                                      SOS = NA,
