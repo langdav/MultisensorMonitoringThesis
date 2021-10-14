@@ -14,5 +14,5 @@
 /data/orthomosaic
 /data/densecloud
 /tmp
-/out/log_function_models
-/out/model_plots
+/out/log_function_models/
+/out/model_plots/
