@@ -33,7 +33,7 @@ for(file in files_planetscope){
     single_tree_sf <- st_as_sf(single_tree_sf)
     
     #extract green, red and NIR values for single tree
-    green <- raster::extract(tmp_stack[[2]], single_tree_sf, na.rm = T)[[1]]
+    #green <- raster::extract(tmp_stack[[2]], single_tree_sf, na.rm = T)[[1]]
     red <- raster::extract(tmp_stack[[3]], single_tree_sf, na.rm = T)[[1]]
     nir <- raster::extract(tmp_stack[[4]], single_tree_sf, na.rm = T)[[1]]
     
