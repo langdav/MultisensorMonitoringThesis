@@ -186,8 +186,8 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
-          xlim(xlim_min, xlim_max) +
-          ylim(ylim_min, ylim_max) +
+          # xlim(xlim_min, xlim_max) +
+          # ylim(ylim_min, ylim_max) +
           theme_light() +
           xlab("Day of Year") +
           ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
@@ -614,14 +614,14 @@ for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
     ggsave(paste0("out/model_plots/",platform,"_all_values_25_50",".png"),all_trees_panel,width = 20,height=12)
 }
 
-all_trees <- lapply(1:50, function(x) plot_SOS(platform = "orthomosaic", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+all_trees <- lapply(1:50, function(x) plot_SOS(platform = "planetscope", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
 all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
 all_trees_panel
 #ggsave("out/model_plots/test.png",all_trees_panel)
 
 #Plotting: single tree and single platform
-tree_no <- 2
-plot_SOS(platform = "planetscope", obs_phase = "phase_f", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
+tree_no <- 3
+plot_SOS(platform = "sentinel1", obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
 
 #create plot of each platforms deviation from mean budburst date (with errorbars)
 # mean observed BB date
@@ -698,8 +698,8 @@ means_all %>%
   theme_light() +
   xlab("Deviation from observed prediction (Phase D)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase D)")
-ggsave("out/model_plots/method_deviations_from_obs_d.png",width = 20,height=12)
+  ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase D)")
+ggsave("out/model_plots/method_deviations_from_obs_d.png",width = 10,height=6)
 
 means_all %>% 
   ggplot(aes(x = bb_mean_e, y = platform, color = platform)) + 
@@ -712,8 +712,8 @@ means_all %>%
   theme_light() +
   xlab("Deviation from observed prediction (Phase E)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase E)")
-ggsave("out/model_plots/method_deviations_from_obs_e.png",width = 20,height=12)
+  ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase E)")
+ggsave("out/model_plots/method_deviations_from_obs_e.png",width = 10,height=6)
 
 means_all %>% 
   ggplot(aes(x = bb_mean_f, y = platform, color = platform)) + 
@@ -726,5 +726,24 @@ means_all %>%
   theme_light() +
   xlab("Deviation from observed prediction (Phase F)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
-  ggtitle("per-platform deviation (in days) from predicted budbust date fomr observed values (Phase F)")
-ggsave("out/model_plots/method_deviations_from_obs_f.png",width = 20,height=12)
+  ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase F)")
+ggsave("out/model_plots/method_deviations_from_obs_f.png",width = 10,height=6)
+
+######################################################
+means_all <- means_all[means_all$ndvi == "mean",]
+test <- data.frame(platform = rep(means_all$platform,3),
+                   mean = c(means_all$bb_mean_d,means_all$bb_mean_e,means_all$bb_mean_f),
+                   sd = rep(means_all$bb_sd,3),
+                   phase = c(rep("phase_d",5),rep("phase_e",5),rep("phase_f",5)))
+test %>% 
+  ggplot(aes(x = mean, y = platform, color = platform)) +
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin=mean-sd, xmax=mean+sd), height = .3) +
+  geom_vline(xintercept = 0, linetype = "longdash", color = "black", size = .5) +
+  geom_vline(xintercept = sd_obs_f, linetype = "dashed", color = "black", size = .5) +
+  geom_vline(xintercept = 0-sd_obs_f, linetype = "dashed", color = "black", size = .5) +
+  facet_grid(phase ~ .) +
+  theme_light() +
+  xlab("Deviation: Predicted - Observed") +
+  ylab("Platform")
+ggsave("out/model_plots/method_deviations_from_obs_mean_only.png",width = 10,height=6)
