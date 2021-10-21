@@ -116,7 +116,7 @@ for(phase in colnames(budburst_new)[4:6]){
       # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
       # 
       
-      if(any(is.na(firstDerivCurv)==T)){
+      if(any(is.na(firstDerivCurv)==T) | all(perc_in_phase == 0)){
         model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                  tree_id = tree,
                                                                  SOS = NA,
@@ -135,6 +135,7 @@ for(phase in colnames(budburst_new)[4:6]){
         # ggplot() +
         #   geom_line(aes(preddoylist,predNDVImod)) +
         #   geom_point(aes(doylist,perc_in_phase)) +
+        #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed") +
         #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
         #   geom_text(aes(x = SOS-1,
         #                 y = 0.4,
@@ -190,12 +191,12 @@ plot_SOS <- function(phase = "phase_d", tree = 10){
   tree_sel <- unique(budburst_new$tree_id)[tree]
   
   entry <- NULL
-  for(i in 1:length(budbust_models)){
-    if(budbust_models[[i]][["tree_id"]] == tree_sel & budbust_models[[i]][["phase"]] == phase_sel){
+  for(i in 1:length(budburst_models)){
+    if(budburst_models[[i]][["tree_id"]] == tree_sel & budburst_models[[i]][["phase"]] == phase_sel){
       entry <- c(entry, i)
     }
   }
-  model_sel <- budbust_models[[entry]]
+  model_sel <- budburst_models[[entry]]
   data_sel <- budburst_model_fitting_out[which(budburst_model_fitting_out$phase == phase_sel & budburst_model_fitting_out$tree_id == tree_sel),]
   
   perc_in_phase <- model_sel$perc_in_phase
@@ -252,7 +253,7 @@ plot_SOS <- function(phase = "phase_d", tree = 10){
 }
 
 #plot single tree in single phase
-plot_SOS(phase = "phase_d", tree = 10)
+plot_SOS(phase = "phase_d", tree = 44)
 
 #plot all trees and all phases
 for(phase in colnames(budburst_new)[4:6]){
@@ -261,14 +262,13 @@ for(phase in colnames(budburst_new)[4:6]){
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
   #all_trees_panel
   ggsave(paste0("out/model_plots/budburst_obs_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
-  
+
   cat("Processing", phase,"images 26 to 50","\n")
   all_trees <- lapply(26:50, function(x) plot_SOS(phase = phase, tree = x))
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
   #all_trees_panel
   ggsave(paste0("out/model_plots/budburst_obs_",phase,"_26_50",".png"),all_trees_panel,width = 20,height=12)
 }
-
 
 ## example plot for presentation
 data_sel <- budburst_model_fitting_out[which(budburst_model_fitting_out$tree_id == "mof_cst_00005"),]
