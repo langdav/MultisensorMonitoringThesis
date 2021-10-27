@@ -13,6 +13,32 @@ load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
 load("out/log_function_models/budburst_fitted_models_output.RData")
 
+#check for outliers
+plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="planetscope"]) #no outliers
+
+plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="orthomosaic"]) #far of points; none of the models was fitted right, what to do with those?!
+
+plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="sentinel2"]) #remove extreme outliers; plots show, that models were not fitted accordingly
+model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="sentinel2" & model_fitting_out_mean$tree_id %in% c("mof_cst_00007",
+                                                                                                                      "mof_cst_00026",
+                                                                                                                      "mof_cst_00039"))] <- NA #models not fitted right
+
+plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="treetalker"]) #visually checked models that led to outliers; can be removed
+model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="treetalker" & model_fitting_out_mean$tree_id %in% c("mof_cst_00021",
+                                                                                                                       "mof_cst_00002",
+                                                                                                                       "mof_cst_00012",
+                                                                                                                       "mof_cst_00026"))] <- NA #models not fitted right
+
+plot(model_fitting_out_sen1$SOS)
+model_fitting_out_sen1$SOS[model_fitting_out_sen1$tree_id %in% c("mof_cst_00024",
+                                                                 "mof_cst_00020",
+                                                                 "mof_cst_00001",
+                                                                 "mof_cst_00018",
+                                                                 "mof_cst_00029",
+                                                                 "mof_cst_00030",
+                                                                 "mof_cst_00040",
+                                                                 "mof_cst_00049")] <- NA #models not fitted right
+
 #calculate MBE and MAD
 # model_fitting_out_all$MBE_d <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_d
 # model_fitting_out_all$MBE_e <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_e
@@ -108,7 +134,7 @@ mbe_mad <- rbind(mbe_mad, data.frame(platform = "Sentinel-1",
                                      n_predictions = length(which(is.na(model_fitting_out_sen1$SOS[which(model_fitting_out_sen1$platform == "sentinel1")])==F))))
 
 
-  
+
 #perform a simple linear regression between estimated and observed budburst dates and get the rsquared of the model
 lin_performance <- NULL
 for(platform in unique(model_fitting_out_mean$platform)){
@@ -121,8 +147,8 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                                        #slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
                                                        #intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7],
                                                        r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared))
-                                                       #slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
-                                                       #intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7]))
+  #slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[8],
+  #intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$coefficients[7]))
   # lin_performance <- rbind(lin_performance, data.frame(platform = platform,
   #                                                      ndvi_mean_median = "median",
   #                                                      r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_median[model_fitting_out_median$platform==platform,]))$r.squared,
@@ -155,197 +181,70 @@ lin_performance <- rbind(lin_performance, data.frame(platform = "sentinel1",
                                                      #slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_sen1))$coefficients[8],
                                                      #intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_sen1))$coefficients[7],
                                                      r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$r.squared))
-                                                     #slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[8],
-                                                     #intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[7]))
+#slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[8],
+#intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_sen1))$coefficients[7]))
 
 lin_performance$r_squared_d <- format(round(lin_performance$r_squared_d,3), scientific=F)
 lin_performance$r_squared_e <- format(round(lin_performance$r_squared_e,3), scientific=F)
 lin_performance$r_squared_f <- format(round(lin_performance$r_squared_f,3), scientific=F)
 
+
+
+
+mean_long %>% 
+  filter(platform == "planetscope") %>%
+  ggplot(aes(x=SOS, y=obs)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(phase~., scales = "free_y") +
+  theme_light() +
+  xlab("Prediction") +
+  ylab("Observation") +
+  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
+
 # manually check for distribution of points in the fitted R² model; outliers?; few points?
 #mean per-tree NDVI values
-ggplot(model_fitting_out_mean, 
-       aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
+model_fitting_out_mean <- rbind(model_fitting_out_mean, model_fitting_out_sen1)
 
-model_fitting_out_mean %>% 
-  filter(platform == "orthomosaic") %>%
-  ggplot(aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
+mean_long <- rbind(cbind(model_fitting_out_mean[,1:9], obs = model_fitting_out_mean$SOS_phase_d, phase = rep("Phase D",nrow(model_fitting_out_mean))),
+                   cbind(model_fitting_out_mean[,1:9], obs = model_fitting_out_mean$SOS_phase_e, phase = rep("Phase E",nrow(model_fitting_out_mean))),
+                   cbind(model_fitting_out_mean[,1:9], obs = model_fitting_out_mean$SOS_phase_f, phase = rep("Phase F",nrow(model_fitting_out_mean))))
 
-model_fitting_out_mean %>% 
-  filter(platform == "planetscope") %>%
-  ggplot(aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
-
-model_fitting_out_mean %>% 
-  filter(platform == "planetscope") %>%
-  ggplot(aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; predicted ~ Observed (Phase D), linear model")
-
-
-
-ggplot(model_fitting_out_mean, 
-       aes(x=SOS, y=SOS_phase_e)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_mean, 
-       aes(x=SOS, y=SOS_phase_f)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Prediction") +
-  ylab("Observation") +
-  ggtitle("per-tree mean NDVI values; BB ~ observed, linear model")
-
-#median per-tree NDVI values
-ggplot(model_fitting_out_median, 
-       aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_median, 
-       aes(x=SOS, y=SOS_phase_e)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_median, 
-       aes(x=SOS, y=SOS_phase_f)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("per-tree median NDVI values; BB ~ observed, linear model")
-
-#all per-tree NDVI values
-ggplot(model_fitting_out_all, 
-       aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("all NDVI values; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_all, 
-       aes(x=SOS, y=SOS_phase_e)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("all NDVI values; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_all, 
-       aes(x=SOS, y=SOS_phase_f)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("al NDVI values; BB ~ observed, linear model")
-
-#sentinel-1
-ggplot(model_fitting_out_sen1, 
-       aes(x=SOS, y=SOS_phase_d)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_sen1, 
-       aes(x=SOS, y=SOS_phase_e)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
-
-ggplot(model_fitting_out_sen1, 
-       aes(x=SOS, y=SOS_phase_f)) +
-  geom_point() +
-  geom_smooth(formula = y ~ x, method = "lm") +
-  geom_abline(slope = 1, intercept = 0, color = "red") +
-  facet_grid(platform~., scales = "free_y") +
-  theme_light() +
-  xlab("Day of Year") +
-  ggtitle("Sentinel-1 backscatter; BB ~ observed, linear model")
+for(the_chosen_one in unique(mean_long$platform)){
+  plotterich <- mean_long %>% 
+    filter(platform == the_chosen_one) %>%
+    filter(!is.na(SOS)) %>% 
+    filter(!is.na(obs)) %>% 
+    ggplot(aes(x=obs, y=SOS)) +
+    geom_point() +
+    geom_smooth(formula = y ~ x, method = "lm") +
+    geom_abline(slope = 1, intercept = 0, color = "red") +
+    facet_grid(phase~., scales = "free_y") +
+    theme_light() +
+    xlab("Observation DOY") +
+    ylab("Prediction DOY") +
+    ggtitle(paste0(the_chosen_one))
+  ggsave(paste0("out/model_plots/variance_", the_chosen_one,".png"),plotterich,width = 10,height=6)
+}
 
 #find earliest budburst, latest budburst and total number of detected budbursts per platform
 platform <- "orthomosaic"
 platform <- "treetalker"
-platform <- "sentinel2"
++platform <- "sentinel2"
 platform <- "planetscope"
 
-min(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
-max(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
+range(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)
 length(which(is.na(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)])==F))
 
-min(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)], na.rm = T)
-max(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)], na.rm = T)
-length(which(is.na(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)])==F))
-
-min(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)], na.rm = T)
-max(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)], na.rm = T)
-length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)])==F))
+# range(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)], na.rm = T)
+# length(which(is.na(model_fitting_out_median$SOS[which(model_fitting_out_median$platform == platform)])==F))
+# 
+# range(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)], na.rm = T)
+# length(which(is.na(model_fitting_out_all$SOS[which(model_fitting_out_all$platform == platform)])==F))
 
 # Sentinel-1
-min(model_fitting_out_sen1$SOS, na.rm = T)
-max(model_fitting_out_sen1$SOS, na.rm = T)
+range(model_fitting_out_sen1$SOS, na.rm = T)
 length(which(is.na(model_fitting_out_sen1$SOS)==F))
 
 #observations
@@ -353,7 +252,6 @@ phase <- "phase_d"
 phase <- "phase_e"
 phase <- "phase_f"
 
-min(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)], na.rm = T)
-max(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)], na.rm = T)
+range(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)], na.rm = T)
 length(which(is.na(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == phase)])==F))
 

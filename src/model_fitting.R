@@ -502,19 +502,6 @@ model_fitting_out_mean <- merge(model_fitting_out_mean, obs_budburst, by = "tree
 model_fitting_out_median <- merge(model_fitting_out_median, obs_budburst, by = "tree_id", all.x =T)
 model_fitting_out_sen1 <- merge(model_fitting_out_sen1, obs_budburst, by = "tree_id", all.x =T)
 
-
-#check for outliers
-plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="planetscope"]) #no outliers
-
-plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="orthomosaic"]) #far of points; but can not be removed as outliers
-
-plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="sentinel2"]) #well...
-
-plot(model_fitting_out_mean$SOS[model_fitting_out_mean$platform=="treetalker"]) #visually checked models that led to outliers; can be removed
-model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="treetalker" & model_fitting_out_mean$SOS > 140)] <- NA
-model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="treetalker" & model_fitting_out_mean$SOS < 105)] <- NA
-
-
 #save results
 save(model_fitting_out_all, file = "out/log_function_models/all_values_fitted_models_output.RData")
 save(model_fitting_out_mean, file = "out/log_function_models/mean_fitted_models_output.RData")

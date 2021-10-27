@@ -5,7 +5,7 @@ library(stats);library(rgdal);library(lubridate);library(dplyr);library(RColorBr
 load("data/budburst_data/budburst_phases_def.RData")
 
 #plotting
-ggplot(budburst_new[which(budburst_new$tree_id %in% unique(budburst_new$tree_id)[1:5]),]) +
+ggplot(budburst_new[which(budburst_new$tree_id %in% unique(budburst_new$tree_id)[6:10]),]) +
   geom_point(aes(doy, phase_d)) +
   facet_wrap(~tree_id)
 
@@ -36,29 +36,14 @@ for(phase in colnames(budburst_new)[4:6]){
     #tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(perc_in_phase ~ b/(1 + exp(-d * (doylist-c))) + a,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
     tt <- tryCatch(fitmodel <- minpack.lm::nlsLM(perc_in_phase ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start)),error=function(e) e, warning=function(w) w)
     
-    if(is(tt,'warning')){
-      print(paste('warning at tree ',tree,'in',phase))
-      model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
-                                                               tree_id = tree,
-                                                               SOS = NA,
-                                                               MOS = NA,
-                                                               EOS = NA,
-                                                               RSE = NA,
-                                                               no_data = F,
-                                                               warning = T,
-                                                               error = F)) #residualSTDerror
+    if(is(tt,'error') | is(tt,'warning')){
+      SOS <- ifelse(max(diff(perc_in_phase))/diff(doylist)[which(diff(perc_in_phase) == max(diff(perc_in_phase)))] > max(diff(perc_in_phase))*0.1, 
+                    doylist[which(diff(perc_in_phase) == max(diff(perc_in_phase)))]+1,
+                    doylist[which(diff(perc_in_phase) == max(diff(perc_in_phase)))]+1)
       
-      models[[countvar]] <- list(phase = phase, 
-                                 tree_id = tree, 
-                                 perc_in_phase = perc_in_phase, 
-                                 doylist = doylist, 
-                                 model = NA)
-      countvar <- countvar+1
-    } else if(is(tt,'error')){
-      print(paste('error at tree ',tree,'in',phase))
       model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                tree_id = tree,
-                                                               SOS = NA,
+                                                               SOS = SOS,
                                                                MOS = NA,
                                                                EOS = NA,
                                                                RSE = NA,
@@ -96,19 +81,19 @@ for(phase in colnames(budburst_new)[4:6]){
       
       #first derivation: slope
       #firstDerivNDVImod <- (a*b*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2 # old model
-      firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
+      # firstDerivNDVImod <- -1*((b*d*exp(c + (preddoylist*d)))/(exp(c + (preddoylist*d))+1)^2) # new model
       
       #second derivation: curvature
       # secondDerivNDVImod <- a*(((2*b^2*exp(-2*b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^3)-((b^2*exp(-b * (preddoylist-c)))/(1+exp((-b * (preddoylist-c))))^2)) #old model
-      secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
-      curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
+      # secondDerivNDVImod <- ((2*b*d^2*exp(2*c + (2*preddoylist*d)))/((exp(c + (preddoylist*d))+1)^3))-((b*d^2*exp(c + (preddoylist*d)))/((exp(c + (preddoylist*d))+1)^2)) #new model
+      # curvature <- secondDerivNDVImod/((1+(firstDerivNDVImod)^2)^1.5)
       
       #curvature change rate (= first derivation)
       # firstDerivCurv <- (b*(d^3)*exp(d*(preddoylist-c))*(exp(6*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(4*d*(preddoylist-c))+(2*(b^2)*(d^2)-16)*exp(3*d*(preddoylist-c))+(-2*(b^2)*(d^2)-9)*exp(2*d*(preddoylist-c))+1)) / (((((b^2)*(d^2)*exp(-2*d*(preddoylist-c)))/((exp(-1*d*(preddoylist-c))+1)^4)+1)^2.5)*((exp(d*(preddoylist-c))+1)^8)) #old model
       firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
       
       #change of curvature
-      ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
+      # ROCcurvature <- c(curvature[2:length(curvature)],NA)-curvature
       
       # old way of finding SOS
       # SOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[1]
@@ -116,7 +101,49 @@ for(phase in colnames(budburst_new)[4:6]){
       # EOS <- sort(preddoylist[kit::topn(ROCcurvature,2)])[2]
       # 
       
-      if(any(is.na(firstDerivCurv)==T) | all(perc_in_phase == 0)){
+      if(any(is.na(firstDerivCurv)==T)){
+        
+        # #insert new values
+        # doylist <- append(doylist, 
+        #                   round(median(c(doylist[which(diff(perc_in_phase) == max(diff(perc_in_phase)))],doylist[ which(diff(perc_in_phase) == max(diff(perc_in_phase)))+1])),0),
+        #                   after = which(diff(perc_in_phase) == max(diff(perc_in_phase))))
+        # 
+        # perc_in_phase <- append(perc_in_phase, 
+        #                         round(median(c(perc_in_phase[which(diff(perc_in_phase) == max(diff(perc_in_phase)))],perc_in_phase[ which(diff(perc_in_phase) == max(diff(perc_in_phase)))+1])),1),
+        #                         after = which(diff(perc_in_phase) == max(diff(perc_in_phase))))
+        # 
+        # #repeat model fitting with new values
+        # fitmodel <- minpack.lm::nlsLM(perc_in_phase ~ b/(1 + exp(c + (doylist*d))) + a,control=nls.control(warnOnly=TRUE,maxiter = 100),start=list(a=a_start,b=b_start,c=c_start,d=d_start))
+        # 
+        # preddoylist <- seq(doystart,doyend,1)
+        # predNDVImod <- predict(fitmodel,data.frame(doylist=preddoylist))
+        # 
+        # modsum <- summary(fitmodel)
+        # a <- modsum$parameters[1]
+        # b <- modsum$parameters[2]
+        # c <- modsum$parameters[3]
+        # d <- modsum$parameters[4]
+        # 
+        # firstDerivCurv <- -1*(b*(d^3)*exp(c+(preddoylist*d))*(exp(6*c+(6*preddoylist*d))+(-2*(b^2)*exp(4*c)*(d^2)-9*exp(4*c))*exp(4*d*preddoylist)+(2*(b^2)*exp(3*c)*(d^2)-16*exp(3*c))*exp(3*d*preddoylist)+(-2*(b^2)*exp(2*c)*(d^2)-9*exp(2*c))*exp(2*d*preddoylist)+1) / (((exp(c+(preddoylist*d))+1)^8)*((((((b^2)*(d^2)*exp(2*(c+(preddoylist*d)))) / ((exp(c+(preddoylist*d))+1)^4))) + 1)^2.5))) #new model
+        # 
+        # SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
+        
+        
+        SOS <- ifelse(max(diff(perc_in_phase))/diff(doylist)[which(diff(perc_in_phase) == max(diff(perc_in_phase)))] > max(diff(perc_in_phase))*0.1, 
+                      doylist[which(diff(perc_in_phase) == max(diff(perc_in_phase)))]+1,
+                      doylist[which(diff(perc_in_phase) == max(diff(perc_in_phase)))]+1)
+        
+        model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
+                                                                 tree_id = tree,
+                                                                 SOS = SOS,
+                                                                 MOS = NA,
+                                                                 EOS = NA,
+                                                                 RSE = modsum$sigma,
+                                                                 no_data = F,
+                                                                 warning = F,
+                                                                 error = F)) #residualSTDerror
+      } else if(all(perc_in_phase == 0)){
+        
         model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                  tree_id = tree,
                                                                  SOS = NA,
@@ -126,6 +153,7 @@ for(phase in colnames(budburst_new)[4:6]){
                                                                  no_data = F,
                                                                  warning = F,
                                                                  error = F)) #residualSTDerror
+        
       } else {
         # SOS = first max. of firstDerivCurv; MOS = min. of firstDerivCurv; EOS = second max. of firstDerivCurv; 
         SOS <- sort(preddoylist[kit::topn(firstDerivCurv,2)])[1]
@@ -136,8 +164,8 @@ for(phase in colnames(budburst_new)[4:6]){
         #   geom_line(aes(preddoylist,predNDVImod)) +
         #   geom_point(aes(doylist,perc_in_phase)) +
         #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed") +
-        #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
-        #   geom_text(aes(x = SOS-1,
+        #   geom_vline(xintercept = MOS, linetype = "longdash", colour = "red") +
+        #   geom_text(aes(x = MOS-1,
         #                 y = 0.4,
         #                 label = "budburst",
         #                 vjust = 0,
@@ -149,8 +177,8 @@ for(phase in colnames(budburst_new)[4:6]){
         model_fitting_out <- rbind(model_fitting_out, data.frame(phase = phase,
                                                                  tree_id = tree,
                                                                  SOS = SOS,
-                                                                 MOS = MOS,
-                                                                 EOS = EOS,
+                                                                 MOS = NA,
+                                                                 EOS = NA,
                                                                  RSE = modsum$sigma,
                                                                  no_data = F,
                                                                  warning = F,
@@ -172,12 +200,13 @@ for(phase in colnames(budburst_new)[4:6]){
 budburst_model_fitting_out <- model_fitting_out;rm(model_fitting_out)
 budburst_models <- models;rm(models)
 
+
 #save models
 save(budburst_model_fitting_out, file = "out/log_function_models/budburst_fitted_models_output.RData")
 save(budburst_models, file = "out/log_function_models/budburst_fitted_models.RData")
 
 #plotting
-plot_SOS <- function(phase = "phase_d", tree = 10){
+plot_SOS <- function(phase = "phase_d", tree = 45){
   #x- and y-axis limits
   xlim_min <- min(unique(budburst_new$doy))
   xlim_max <- max(unique(budburst_new$doy))
@@ -228,6 +257,7 @@ plot_SOS <- function(phase = "phase_d", tree = 10){
       plot_out <- ggplot() +
         geom_point(aes(doylist, perc_in_phase)) +
         geom_line(aes(preddoylist,predNDVImod)) +
+        
         xlim(xlim_min, xlim_max) +
         ylim(ylim_min, ylim_max) +
         theme_light() +
@@ -242,6 +272,12 @@ plot_SOS <- function(phase = "phase_d", tree = 10){
     
     plot_out <- ggplot() +
       geom_point(aes(doylist, perc_in_phase)) +
+      geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
+      geom_text(aes(x = data_sel$SOS,
+                    y = min(perc_in_phase),
+                    label = "predicted",
+                    vjust = 0,
+                    angle = 90)) +
       xlim(xlim_min, xlim_max) +
       ylim(ylim_min, ylim_max) +
       theme_light() +
@@ -253,7 +289,7 @@ plot_SOS <- function(phase = "phase_d", tree = 10){
 }
 
 #plot single tree in single phase
-plot_SOS(phase = "phase_d", tree = 44)
+plot_SOS(phase = "phase_d", tree = 8)
 
 #plot all trees and all phases
 for(phase in colnames(budburst_new)[4:6]){
@@ -262,7 +298,7 @@ for(phase in colnames(budburst_new)[4:6]){
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
   #all_trees_panel
   ggsave(paste0("out/model_plots/budburst_obs_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
-
+  
   cat("Processing", phase,"images 26 to 50","\n")
   all_trees <- lapply(26:50, function(x) plot_SOS(phase = phase, tree = x))
   all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)

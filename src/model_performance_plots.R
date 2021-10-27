@@ -7,20 +7,14 @@ rm(list = ls())
 library(rgdal);library(dplyr);library(RColorBrewer);library(ggplot2);library(ggpubr);library(lubridate);library(gridExtra)
 
 #load data
-load("out/log_function_models/all_values_fitted_models_output.RData")
-load("out/log_function_models/all_values_fitted_models.RData")
+# load("out/log_function_models/all_values_fitted_models_output.RData")
+# load("out/log_function_models/all_values_fitted_models.RData")
+# load("out/log_function_models/median_fitted_models_output.RData")
+# load("out/log_function_models/median_fitted_models.RData")
 load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/mean_fitted_models.RData")
-load("out/log_function_models/median_fitted_models_output.RData")
-load("out/log_function_models/median_fitted_models.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models.RData")
-# load("out/log_function_models/whole_forest_mean_fitted_models_output.RData")
-# load("out/log_function_models/whole_forest_mean_fitted_models.RData")
-# load("out/log_function_models/whole_forest_median_fitted_models_output.RData")
-# load("out/log_function_models/whole_forest_median_fitted_models.RData")
-# load("out/log_function_models/whole_forest_sentinel1_fitted_models_output.RData")
-# load("out/log_function_models/whole_forest_sentinel1_fitted_models.RData")
 
 load("data/trees.RData")
 trees$tree_id <- as.character(trees$tree_id)
@@ -586,7 +580,7 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
 #     ggsave(paste0("out/model_plots/",platform,"_all_values_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
 #   }
 # }
-for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
+for(platform in c(unique(model_fitting_out_mean$platform),"sentinel1")){
     cat("Processing", platform,"\n")
     
     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))

@@ -204,7 +204,6 @@ for(tree in unique(multiplatform$tree_id)){
 model_fitting_out_multiplatform <- model_fitting_out
 model_out_multiplatform <- models
 
-plot(model_fitting_out_multiplatform$SOS) #one potential outlier; after checking it visually, it can't be removed
 
 #add predicted budburst from observations
 load("out/log_function_models/budburst_fitted_models_output.RData")
@@ -277,9 +276,12 @@ all_trees <- lapply(26:50, function(x) plot_multi(x))
 all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
 ggsave(paste0("out/model_plots/multiplatform_26_50",".png"),all_trees_panel,width = 20,height=12)
 
+#remove outliers
+plot(model_fitting_out_multiplatform$SOS) #one potential outlier; after checking it visually, it can't be removed
+
+
 #ealierst/latest budburst dates
-min(model_fitting_out_multiplatform$SOS, na.rm = T)
-max(model_fitting_out_multiplatform$SOS, na.rm = T)
+range(model_fitting_out_multiplatform$SOS, na.rm = T)
 length(which(is.na(model_fitting_out_multiplatform$SOS)==F))
 
 #statistics
