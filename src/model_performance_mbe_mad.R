@@ -39,6 +39,10 @@ model_fitting_out_sen1$SOS[model_fitting_out_sen1$tree_id %in% c("mof_cst_00024"
                                                                  "mof_cst_00040",
                                                                  "mof_cst_00049")] <- NA #models not fitted right
 
+#testing MOS -> worse than SOS
+model_fitting_out_mean$SOS <- model_fitting_out_mean$MOS
+model_fitting_out_sen1$SOS <- model_fitting_out_sen1$MOS
+
 #calculate MBE and MAD
 # model_fitting_out_all$MBE_d <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_d
 # model_fitting_out_all$MBE_e <- model_fitting_out_all$SOS - model_fitting_out_all$SOS_phase_e
