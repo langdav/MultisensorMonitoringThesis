@@ -13,6 +13,23 @@ load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
 load("out/log_function_models/budburst_fitted_models_output.RData")
 
+#outlier removal (see model_performance_mbe_mad.R)
+model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="sentinel2" & model_fitting_out_mean$tree_id %in% c("mof_cst_00007",
+                                                                                                                      "mof_cst_00026",
+                                                                                                                      "mof_cst_00039"))] <- NA #models not fitted right
+model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="treetalker" & model_fitting_out_mean$tree_id %in% c("mof_cst_00021",
+                                                                                                                       "mof_cst_00002",
+                                                                                                                       "mof_cst_00012",
+                                                                                                                       "mof_cst_00026"))] <- NA #models not fitted right
+model_fitting_out_sen1$SOS[model_fitting_out_sen1$tree_id %in% c("mof_cst_00024",
+                                                                 "mof_cst_00020",
+                                                                 "mof_cst_00001",
+                                                                 "mof_cst_00018",
+                                                                 "mof_cst_00029",
+                                                                 "mof_cst_00030",
+                                                                 "mof_cst_00040",
+                                                                 "mof_cst_00049")] <- NA #models not fitted right
+
 #add Sentinel-1 data to the other datasets, to be able to compare them with one another
 # model_fitting_out_all <- rbind(model_fitting_out_all,model_fitting_out_sen1)
 # model_fitting_out_median <- rbind(model_fitting_out_median,model_fitting_out_sen1)
@@ -66,7 +83,7 @@ car::leveneTest(SOS~platform, data = model_fitting_out_mean) # p < 0.05; no Vari
 # car::leveneTest(SOS~platform, data = model_fitting_out_median) # p < 0.05; no Variance homogeneity -> Anova can not be used; use Welch-Anova instead
 
 #observed values
-car::leveneTest(SOS~phase, data = budburst_model_fitting_out) # p > 0.05; Variance homogeneity -> Anova can be used
+car::leveneTest(SOS~phase, data = budburst_model_fitting_out) # p < 0.05; no Variance homogeneity
 
 #Welch-Anova(s) to test, if estimated values of platforms differ
 #estimated values; all values
@@ -127,9 +144,9 @@ for(platform in unique(model_fitting_out_mean$platform)){
   #                                                   rep(as.factor("observed"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]))))
   # 
   tmp_df_mean_d <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
-                                       model_fitting_out_mean$SOS_phase_d[model_fitting_out_mean$platform==platform]),
-                            estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
-                                                   rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
+                                         model_fitting_out_mean$SOS_phase_d[model_fitting_out_mean$platform==platform]),
+                              estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
+                                                     rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
   
   tmp_df_mean_e <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
                                          model_fitting_out_mean$SOS_phase_e[model_fitting_out_mean$platform==platform]),
@@ -170,15 +187,19 @@ for(platform in unique(model_fitting_out_mean$platform)){
   # 
   welch_anova <- rbind(welch_anova, data.frame(platform = platform,
                                                mean_median = "mean_d",
-                                               p_val = rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$p))
+                                               p_val = rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$p,
+                                               f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$statistic)))
+                       
   
   welch_anova <- rbind(welch_anova, data.frame(platform = platform,
                                                mean_median = "mean_e",
-                                               p_val = rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$p))
+                                               p_val = rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$p,
+                                               f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$statistic)))
   
   welch_anova <- rbind(welch_anova, data.frame(platform = platform,
                                                mean_median = "mean_f",
-                                               p_val = rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$p))
+                                               p_val = rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$p,
+                                               f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$statistic)))
   
   # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
   #                                              mean_median = "median_d",
