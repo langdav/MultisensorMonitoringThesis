@@ -20,18 +20,9 @@ load("data/trees.RData")
 trees$tree_id <- as.character(trees$tree_id)
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
-#prepare data frames and functions
-#create data frame for budburst start vline
-# budburst <- read.csv("data/budburst_data/budburst_long.csv")
-# budburst$date <- as.Date(budburst$date)
-# 
-# buddies_budburst_start <- NULL
-# for(tree in unique(budburst$tree_id)){
-#   tmp <- budburst %>% filter(tree_id == tree)
-#   budburst_date_tmp <- yday(tmp$date[tmp$budburst == T][1])
-#   buddies_budburst_start <- rbind(buddies_budburst_start, data.frame(tree_id = tree,
-#                                                                      budburst_date = budburst_date_tmp))
-# }
+#testing MOS -> worse than SOS
+model_fitting_out_mean$SOS <- model_fitting_out_mean$MOS
+model_fitting_out_sen1$SOS <- model_fitting_out_sen1$MOS
 
 #plotting function; single tree and single platform
 plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = 1, budburst_percent = F){
@@ -646,31 +637,31 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                            bb_sd = std,
                                            ndvi = "mean"))
   
-  tmp <- model_fitting_out_median[which(model_fitting_out_median$platform == platform),]
-  m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
-  m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
-  m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
-  std <- sd(tmp$SOS, na.rm = T)
-  
-  means_all <- rbind(means_all, data.frame(platform = platform,
-                                           bb_mean_d = m_d,
-                                           bb_mean_e = m_e,
-                                           bb_mean_f = m_f,
-                                           bb_sd = std,
-                                           ndvi = "median"))
-  
-  tmp <- model_fitting_out_all[which(model_fitting_out_all$platform == platform),]
-  m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
-  m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
-  m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
-  std <- sd(tmp$SOS, na.rm = T)
-  
-  means_all <- rbind(means_all, data.frame(platform = platform,
-                                           bb_mean_d = m_d,
-                                           bb_mean_e = m_e,
-                                           bb_mean_f = m_f,
-                                           bb_sd = std,
-                                           ndvi = "all_values"))
+  # tmp <- model_fitting_out_median[which(model_fitting_out_median$platform == platform),]
+  # m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
+  # m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
+  # m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
+  # std <- sd(tmp$SOS, na.rm = T)
+  # 
+  # means_all <- rbind(means_all, data.frame(platform = platform,
+  #                                          bb_mean_d = m_d,
+  #                                          bb_mean_e = m_e,
+  #                                          bb_mean_f = m_f,
+  #                                          bb_sd = std,
+  #                                          ndvi = "median"))
+  # 
+  # tmp <- model_fitting_out_all[which(model_fitting_out_all$platform == platform),]
+  # m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
+  # m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
+  # m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
+  # std <- sd(tmp$SOS, na.rm = T)
+  # 
+  # means_all <- rbind(means_all, data.frame(platform = platform,
+  #                                          bb_mean_d = m_d,
+  #                                          bb_mean_e = m_e,
+  #                                          bb_mean_f = m_f,
+  #                                          bb_sd = std,
+  #                                          ndvi = "all_values"))
 }
 means_sen1 <- data.frame(platform = "sentinel1",
                          bb_mean_d = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_d,
