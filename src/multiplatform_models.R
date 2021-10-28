@@ -291,28 +291,48 @@ model_fitting_out_multiplatform$MBE_e <- model_fitting_out_multiplatform$SOS - m
 model_fitting_out_multiplatform$MBE_f <- model_fitting_out_multiplatform$SOS - model_fitting_out_multiplatform$SOS_phase_f
 
 mbe_mad <- data.frame(platform = "multiplatform",
-                                     mbe_d = round(sum(model_fitting_out_multiplatform$MBE_d, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     mad_d = round(sum(abs(model_fitting_out_multiplatform$MBE_d), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     d_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_d)),
-                                     mbe_e = round(sum(model_fitting_out_multiplatform$MBE_e, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     mad_e = round(sum(abs(model_fitting_out_multiplatform$MBE_e), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     e_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_e)),
-                                     mbe_f = round(sum(model_fitting_out_multiplatform$MBE_f, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     mad_f = round(sum(abs(model_fitting_out_multiplatform$MBE_f), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
-                                     f_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_f)),
-                                     n_predictions = length(which(is.na(model_fitting_out_multiplatform$SOS)==F)))
+                      mbe_d = round(sum(model_fitting_out_multiplatform$MBE_d, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      mad_d = round(sum(abs(model_fitting_out_multiplatform$MBE_d), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      d_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_d)),
+                      mbe_e = round(sum(model_fitting_out_multiplatform$MBE_e, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      mad_e = round(sum(abs(model_fitting_out_multiplatform$MBE_e), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      e_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_e)),
+                      mbe_f = round(sum(model_fitting_out_multiplatform$MBE_f, na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      mad_f = round(sum(abs(model_fitting_out_multiplatform$MBE_f), na.rm = T) / nrow(model_fitting_out_multiplatform),2),
+                      f_vals = sum(!is.na(model_fitting_out_multiplatform$MBE_f)),
+                      n_predictions = length(which(is.na(model_fitting_out_multiplatform$SOS)==F)))
 
 #perform a simple linear regression between estimated and observed budburst dates and get the rsquared of the model
 lin_performance <- data.frame(platform = "multiplatform",
-           r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$r.squared,
-           slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$coefficients[8],
-           intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$coefficients[7],
-           r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$r.squared,
-           slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$coefficients[8],
-           intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$coefficients[7],
-           r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$r.squared,
-           slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$coefficients[8],
-           intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$coefficients[7])
+                              r_squared_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$r.squared,
+                              # slope_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$coefficients[8],
+                              # intercept_signif_d = summary(lm(SOS ~ SOS_phase_d,model_fitting_out_multiplatform))$coefficients[7],
+                              r_squared_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$r.squared,
+                              # slope_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$coefficients[8],
+                              # intercept_signif_e = summary(lm(SOS ~ SOS_phase_e,model_fitting_out_multiplatform))$coefficients[7],
+                              r_squared_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$r.squared)
+# slope_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$coefficients[8],
+# intercept_signif_f = summary(lm(SOS ~ SOS_phase_f,model_fitting_out_multiplatform))$coefficients[7])
+
+multi_long <- rbind(cbind(model_fitting_out_multiplatform[,1:9], obs = model_fitting_out_multiplatform$SOS_phase_d, phase = rep("Phase D",nrow(model_fitting_out_multiplatform))),
+                    cbind(model_fitting_out_multiplatform[,1:9], obs = model_fitting_out_multiplatform$SOS_phase_e, phase = rep("Phase E",nrow(model_fitting_out_multiplatform))),
+                    cbind(model_fitting_out_multiplatform[,1:9], obs = model_fitting_out_multiplatform$SOS_phase_f, phase = rep("Phase F",nrow(model_fitting_out_multiplatform))))
+
+
+plotterich <- multi_long %>% 
+  filter(!is.na(SOS)) %>% 
+  filter(!is.na(obs)) %>% 
+  ggplot(aes(x=obs, y=SOS)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "lm") +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_grid(phase~., scales = "free_y") +
+  theme_light() +
+  xlab("Observation DOY") +
+  ylab("Prediction DOY") +
+  ggtitle("multiplatform")
+ggsave(paste0("out/model_plots/variance_multiplatform.png"),plotterich,width = 10,height=6)
+
 
 #ANOVAS
 tmp_df_all_d <- data.frame(values = c(model_fitting_out_multiplatform$SOS,
@@ -331,5 +351,8 @@ tmp_df_all_f <- data.frame(values = c(model_fitting_out_multiplatform$SOS,
                                                   rep(as.factor("observed"), nrow(model_fitting_out_multiplatform))))
 
 rstatix::welch_anova_test(tmp_df_all_d, values ~ estimated_observed)$p
+as.numeric(rstatix::welch_anova_test(tmp_df_all_d, values ~ estimated_observed)$statistic)
 rstatix::welch_anova_test(tmp_df_all_e, values ~ estimated_observed)$p
+as.numeric(rstatix::welch_anova_test(tmp_df_all_e, values ~ estimated_observed)$statistic)
 rstatix::welch_anova_test(tmp_df_all_f, values ~ estimated_observed)$p
+as.numeric(rstatix::welch_anova_test(tmp_df_all_f, values ~ estimated_observed)$statistic)
