@@ -31,6 +31,7 @@ model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform=="treetalker" &
 
 plot(model_fitting_out_sen1$SOS)
 model_fitting_out_sen1$SOS[model_fitting_out_sen1$tree_id %in% c("mof_cst_00024",
+                                                                 "mof_cst_00009",
                                                                  "mof_cst_00020",
                                                                  "mof_cst_00001",
                                                                  "mof_cst_00018",
@@ -235,7 +236,7 @@ for(the_chosen_one in unique(mean_long$platform)){
 #find earliest budburst, latest budburst and total number of detected budbursts per platform
 platform <- "orthomosaic"
 platform <- "treetalker"
-+platform <- "sentinel2"
+platform <- "sentinel2"
 platform <- "planetscope"
 
 range(model_fitting_out_mean$SOS[which(model_fitting_out_mean$platform == platform)], na.rm = T)

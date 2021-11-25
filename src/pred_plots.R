@@ -129,45 +129,27 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
           geom_line(aes(preddoylist,predNDVImod)) +
-          #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
           geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-          # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-          #               y = min(ndvidat),
-          #               label = c("SOS","MOS","EOS"),
-          #               vjust = 0,
-          #               angle = 90)) +
           geom_text(aes(x = data_sel$SOS,
-                        y = min(ndvidat),
+                        y = min(ndvidat)*0.5,
                         label = "predicted",
                         vjust = 0,
                         angle = 90)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -182,33 +164,21 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
           geom_line(aes(preddoylist,predNDVImod)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -224,45 +194,27 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_line(aes(preddoylist,predNDVImod)) +
-          #geom_vline(xintercept = c(data_sel$SOS,data_sel$MOS,data_sel$EOS), linetype = "dotdash", color = "blue", size = .8) +
           geom_vline(xintercept = data_sel$SOS, linetype = "dotdash", color = "blue", size = .8) +
-          # geom_text(aes(x = c(data_sel$SOS,data_sel$MOS,data_sel$EOS),
-          #               y = min(ndvidat),
-          #               label = c("SOS","MOS","EOS"),
-          #               vjust = 0,
-          #               angle = 90)) +
           geom_text(aes(x = data_sel$SOS,
-                        y = min(ndvidat),
+                        y = min(ndvidat)*0.5,
                         label = "predicted",
                         vjust = 0,
                         angle = 90)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -276,33 +228,21 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_line(aes(preddoylist,predNDVImod)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -360,39 +300,26 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
       }
     }
     
-    # buddies <- buddies_budburst_start[buddies_budburst_start$tree_id == tree_sel,]
     if(mean_ndvi_values == T & median_ndvi_values == F){
       if(!is.na(data_sel$SOS)){
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -406,33 +333,21 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
           geom_errorbar(aes(x = doylist ,ymin=ndvidat-ndvi_sd, ymax=ndvidat+ndvi_sd), width = 1) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -447,33 +362,22 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
       if(!is.na(data_sel$SOS)){
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -486,33 +390,21 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
       } else {
         plot_out <- ggplot() +
           geom_point(aes(doylist, ndvidat)) +
-          # geom_vline(xintercept = buddies$budburst_date, linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = buddies$budburst_date,
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          # geom_vline(xintercept = data_sel[,paste0("SOS_",obs_phase)], linetype = "longdash", color = "red", size = .5) +
-          # geom_text(aes(x = data_sel[,paste0("SOS_",obs_phase)],
-          #               y = max(ndvidat),
-          #               label = "OBS",
-          #               vjust = 0,
-          #               angle = 90)) +
-          geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
+        geom_vline(xintercept = data_sel$SOS_phase_d, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_d,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.3,
                         label = "phase_d",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_e, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_e,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.6,
                         label = "phase_e",
                         vjust = 0,
                         angle = 90)) +
           geom_vline(xintercept = data_sel$SOS_phase_f, linetype = "longdash", color = "red", size = .5) +
           geom_text(aes(x = data_sel$SOS_phase_f,
-                        y = max(ndvidat),
+                        y = max(ndvidat)*0.9,
                         label = "phase_f",
                         vjust = 0,
                         angle = 90)) +
@@ -541,74 +433,26 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
   return(plot_out)
 }
 
-#Plotting: all trees, single platform; one panel
-# for(platform in c(unique(model_fitting_out_all$platform),"sentinel1")){
-#   for(phase in c("phase_d","phase_e","phase_f")){
-#     cat("Processing", platform, ",", phase,"\n")
-#     
-#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_mean_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
-#     
-#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_mean_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
-#     
-#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_median_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
-#     
-#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_median_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
-#     
-#     all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_all_values_",phase,"_1_25",".png"),all_trees_panel,width = 20,height=12)
-#     
-#     all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = phase, mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-#     all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-#     ggsave(paste0("out/model_plots/",platform,"_all_values_",phase,"_25_50",".png"),all_trees_panel,width = 20,height=12)
-#   }
-# }
+# plotting all models in panels of 10
 for(platform in c(unique(model_fitting_out_mean$platform),"sentinel1")){
-    cat("Processing", platform,"\n")
+  cat("Processing", platform,"\n")
+  
+  for(i in 0:4){
+    u <- i*10+1
+    v <- u+9
     
-    all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    ggsave(paste0("out/model_plots/",platform,"_mean_1_25",".png"),all_trees_panel,width = 20,height=12)
-    
-    all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    ggsave(paste0("out/model_plots/",platform,"_mean_25_50",".png"),all_trees_panel,width = 20,height=12)
-    
-    # all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-    # all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    # ggsave(paste0("out/model_plots/",platform,"_median_1_25",".png"),all_trees_panel,width = 20,height=12)
-    # 
-    # all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = T, tree = x, budburst_percent = F))
-    # all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    # ggsave(paste0("out/model_plots/",platform,"_median_25_50",".png"),all_trees_panel,width = 20,height=12)
-    # 
-    # all_trees <- lapply(1:25, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-    # all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    # ggsave(paste0("out/model_plots/",platform,"_all_values_1_25",".png"),all_trees_panel,width = 20,height=12)
-    # 
-    # all_trees <- lapply(26:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = F, median_ndvi_values = F, tree = x, budburst_percent = F))
-    # all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-    # ggsave(paste0("out/model_plots/",platform,"_all_values_25_50",".png"),all_trees_panel,width = 20,height=12)
+    all_trees <- lapply(u:v, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 2, ncol = 5,layout_matrix = matrix(u:v, 2, 5, TRUE))
+    ggsave(paste0("out/model_plots/",platform,"_",u,"_",v,".png"),all_trees_panel,width = 16,height=5)
+  }
 }
 
-all_trees <- lapply(1:50, function(x) plot_SOS(platform = "planetscope", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-all_trees_panel
-#ggsave("out/model_plots/test.png",all_trees_panel)
 
 #Plotting: single tree and single platform
 tree_no <- 3
 plot_SOS(platform = "sentinel1", obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = tree_no, budburst_percent = F)
 
-#create plot of each platforms deviation from mean budburst date (with errorbars)
+#create plot of each platform's deviation from mean budburst date (with errorbars)
 # mean observed BB date
 load("out/log_function_models/budburst_fitted_models_output.RData")
 mean_obs_d <- mean(budburst_model_fitting_out$SOS[which(budburst_model_fitting_out$phase == "phase_d")], na.rm = T)
@@ -636,32 +480,6 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                            bb_mean_f = m_f,
                                            bb_sd = std,
                                            ndvi = "mean"))
-  
-  # tmp <- model_fitting_out_median[which(model_fitting_out_median$platform == platform),]
-  # m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
-  # m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
-  # m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
-  # std <- sd(tmp$SOS, na.rm = T)
-  # 
-  # means_all <- rbind(means_all, data.frame(platform = platform,
-  #                                          bb_mean_d = m_d,
-  #                                          bb_mean_e = m_e,
-  #                                          bb_mean_f = m_f,
-  #                                          bb_sd = std,
-  #                                          ndvi = "median"))
-  # 
-  # tmp <- model_fitting_out_all[which(model_fitting_out_all$platform == platform),]
-  # m_d <- mean(tmp$SOS-mean_obs_d, na.rm = T)
-  # m_e <- mean(tmp$SOS-mean_obs_e, na.rm = T)
-  # m_f <- mean(tmp$SOS-mean_obs_f, na.rm = T)
-  # std <- sd(tmp$SOS, na.rm = T)
-  # 
-  # means_all <- rbind(means_all, data.frame(platform = platform,
-  #                                          bb_mean_d = m_d,
-  #                                          bb_mean_e = m_e,
-  #                                          bb_mean_f = m_f,
-  #                                          bb_sd = std,
-  #                                          ndvi = "all_values"))
 }
 means_sen1 <- data.frame(platform = "sentinel1",
                          bb_mean_d = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_d,
@@ -670,13 +488,14 @@ means_sen1 <- data.frame(platform = "sentinel1",
                          bb_sd = sd(model_fitting_out_sen1$SOS, na.rm = T),
                          ndvi = "mean")
 
+
 load("out/log_function_models/multiplatform_fitted_models_output.RData")
 means_multi <- data.frame(platform = "multiplatform",
-                         bb_mean_d = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_d,
-                         bb_mean_e = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_e,
-                         bb_mean_f = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_f,
-                         bb_sd = sd(model_fitting_out_multiplatform$SOS, na.rm = T),
-                         ndvi = "mean")
+                          bb_mean_d = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_d,
+                          bb_mean_e = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_e,
+                          bb_mean_f = mean(model_fitting_out_multiplatform$SOS, na.rm = T)-mean_obs_f,
+                          bb_sd = sd(model_fitting_out_multiplatform$SOS, na.rm = T),
+                          ndvi = "mean")
 
 means_all <- rbind(means_all, means_sen1,means_multi)
 
