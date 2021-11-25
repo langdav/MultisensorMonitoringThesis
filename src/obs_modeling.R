@@ -246,15 +246,19 @@ plot_SOS(phase = "phase_d", tree = 12)
 
 #plot all trees and all phases
 for(phase in colnames(budburst_new)[4:6]){
-  for(i in 0:4){
-    u <- i*10+1
-    v <- u+9
+  
+  for(i in seq(1,37,12)){
+    v <- i+11
     
-    all_trees <- lapply(u:v, function(x) plot_SOS(phase = phase, tree = x))
-    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 2, ncol = 5,layout_matrix = matrix(u:v, 2, 5, TRUE))
-    #all_trees_panel
-    ggsave(paste0("out/model_plots/budburst_obs_",phase,"_",u,"_",v,".png"),all_trees_panel,width = 16,height=5)
+    all_trees <- lapply(i:v, function(x) plot_SOS(phase = phase, tree = x))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 4, ncol = 3,layout_matrix = matrix(1:12, 4, 3, TRUE))
+    ggsave(paste0("out/model_plots/budburst_obs_",phase,"_",i,"_",v,".png"),all_trees_panel,width = 16,height=16)
   }
+  
+  all_trees <- lapply(49:50, function(x) plot_SOS(phase = phase, tree = x))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 1, ncol = 2,layout_matrix = matrix(1:2, 1, 2, TRUE))
+  ggsave(paste0("out/model_plots/budburst_obs_",phase,"_",48,"_",50,".png"),all_trees_panel,width = 10.7,height=4)
+  
 }
 
 ## example plot for presentation

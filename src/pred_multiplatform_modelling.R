@@ -268,13 +268,17 @@ plot_multi <- function(i){
   return(plot)
 }
 
-all_trees <- lapply(1:25, function(x) plot_multi(x))
-all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-ggsave(paste0("out/model_plots/multiplatform_1_25",".png"),all_trees_panel,width = 20,height=12)
+for(i in seq(1,37,12)){
+  v <- i+11
+  
+  all_trees <- lapply(i:v, function(x) plot_multi(x))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 4, ncol = 3,layout_matrix = matrix(1:12, 4, 3, TRUE))
+  ggsave(paste0("out/model_plots/multiplatform_",i,"_",v,".png"),all_trees_panel,width = 16,height=16)
+}
 
-all_trees <- lapply(26:50, function(x) plot_multi(x))
-all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 5, ncol = 5)
-ggsave(paste0("out/model_plots/multiplatform_26_50",".png"),all_trees_panel,width = 20,height=12)
+all_trees <- lapply(49:50, function(x) plot_multi(x))
+all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 1, ncol = 2,layout_matrix = matrix(1:2, 1, 2, TRUE))
+ggsave(paste0("out/model_plots/multiplatform_",48,"_",50,".png"),all_trees_panel,width = 10.7,height=4)
 
 #remove outliers
 plot(model_fitting_out_multiplatform$SOS) #one potential outlier; after checking it visually, it can't be removed

@@ -264,17 +264,17 @@ model_fitting <- function(dataset = aio_mean, mean = T, median = F, return_model
               #   geom_line(aes(preddoylist,predNDVImod)) +
               #   geom_point(aes(doylist,ndvidat)) +
               #   geom_errorbar(aes(x = doylist ,ymin=ndvidat-sd, ymax=ndvidat+sd), width = 1) +
-              #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed") +
-              #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "red") +
+              #   geom_line(aes(preddoylist,firstDerivCurv*1000+0.7), linetype = "dashed", colour = "red") +
+              #   geom_vline(xintercept = SOS, linetype = "longdash", colour = "blue") +
               #   geom_text(aes(x = SOS-1,
-              #                 y = 0.4,
+              #                 y = 0.6,
               #                 label = "budburst",
               #                 vjust = 0,
               #                 angle = 90)) +
-              #   theme_minimal() +
+              #   theme_light() +
               #   xlab("DOY") +
               #   ylab("NDVI")
-              # ggsave(paste0("tmp/example_curvature_derivative.png"),width = 5,height=4)
+              # ggsave(paste0("tmp/example_curvature_derivative.png"),width = 12,height=6)
             }
             
             models[[countvar]] <- list(platform = platform, 

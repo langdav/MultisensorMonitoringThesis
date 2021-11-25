@@ -16,13 +16,15 @@ load("out/log_function_models/mean_fitted_models.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models.RData")
 
+model_fitting_out_mean <- rbind(model_fitting_out_mean,model_fitting_out_sen1)
+
 load("data/trees.RData")
 trees$tree_id <- as.character(trees$tree_id)
 trees <- trees[c(1:50),] #reduce to trees with a budburst record
 
 #testing MOS -> worse than SOS
-model_fitting_out_mean$SOS <- model_fitting_out_mean$MOS
-model_fitting_out_sen1$SOS <- model_fitting_out_sen1$MOS
+# model_fitting_out_mean$SOS <- model_fitting_out_mean$MOS
+# model_fitting_out_sen1$SOS <- model_fitting_out_sen1$MOS
 
 #plotting function; single tree and single platform
 plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = 1, budburst_percent = F){
@@ -437,14 +439,18 @@ plot_SOS <- function(platform = "orthomosaic", obs_phase = "phase_d", mean_ndvi_
 for(platform in c(unique(model_fitting_out_mean$platform),"sentinel1")){
   cat("Processing", platform,"\n")
   
-  for(i in 0:4){
-    u <- i*10+1
-    v <- u+9
+  for(i in seq(1,37,12)){
+    v <- i+11
     
-    all_trees <- lapply(u:v, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
-    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 2, ncol = 5,layout_matrix = matrix(u:v, 2, 5, TRUE))
-    ggsave(paste0("out/model_plots/",platform,"_",u,"_",v,".png"),all_trees_panel,width = 16,height=5)
+    all_trees <- lapply(i:v, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+    all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 4, ncol = 3,layout_matrix = matrix(1:12, 4, 3, TRUE))
+    ggsave(paste0("out/model_plots/",platform,"_",i,"_",v,".png"),all_trees_panel,width = 16,height=16)
   }
+  
+  all_trees <- lapply(49:50, function(x) plot_SOS(platform = platform, obs_phase = "phase_d", mean_ndvi_values = T, median_ndvi_values = F, tree = x, budburst_percent = F))
+  all_trees_panel <- gridExtra::marrangeGrob(all_trees, nrow = 1, ncol = 2,layout_matrix = matrix(1:2, 1, 2, TRUE))
+  ggsave(paste0("out/model_plots/",platform,"_",48,"_",50,".png"),all_trees_panel,width = 10.7,height=4)
+
 }
 
 
@@ -481,12 +487,6 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                            bb_sd = std,
                                            ndvi = "mean"))
 }
-means_sen1 <- data.frame(platform = "sentinel1",
-                         bb_mean_d = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_d,
-                         bb_mean_e = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_e,
-                         bb_mean_f = mean(model_fitting_out_sen1$SOS, na.rm = T)-mean_obs_f,
-                         bb_sd = sd(model_fitting_out_sen1$SOS, na.rm = T),
-                         ndvi = "mean")
 
 
 load("out/log_function_models/multiplatform_fitted_models_output.RData")
@@ -497,7 +497,7 @@ means_multi <- data.frame(platform = "multiplatform",
                           bb_sd = sd(model_fitting_out_multiplatform$SOS, na.rm = T),
                           ndvi = "mean")
 
-means_all <- rbind(means_all, means_sen1,means_multi)
+means_all <- rbind(means_all,means_multi)
 
 
 means_all %>% 
@@ -513,7 +513,7 @@ means_all %>%
   xlab("Deviation from observed prediction (Phase D)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
   ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase D)")
-ggsave("out/model_plots/method_deviations_from_obs_d.png",width = 10,height=6)
+ggsave("out/model_plots/method_deviations_from_obs_d.png",width = 16,height=5)
 
 means_all %>% 
   filter(ndvi == "mean") %>% 
@@ -528,7 +528,7 @@ means_all %>%
   xlab("Deviation from observed prediction (Phase E)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
   ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase E)")
-ggsave("out/model_plots/method_deviations_from_obs_e.png",width = 10,height=6)
+ggsave("out/model_plots/method_deviations_from_obs_e.png",width = 16,height=5)
 
 means_all %>% 
   filter(ndvi == "mean") %>% 
@@ -543,14 +543,14 @@ means_all %>%
   xlab("Deviation from observed prediction (Phase F)") +
   ylab(ifelse(platform == "sentinel1","Backscatter/db","NDVI")) +
   ggtitle("per-platform deviation (in days) from predicted budbust date from observed values (Phase F)")
-ggsave("out/model_plots/method_deviations_from_obs_f.png",width = 10,height=6)
+ggsave("out/model_plots/method_deviations_from_obs_f.png",width = 16,height=5)
 
 ######################################################
 means_all <- means_all[means_all$ndvi == "mean",]
 test <- data.frame(platform = rep(means_all$platform,3),
                    mean = c(means_all$bb_mean_d,means_all$bb_mean_e,means_all$bb_mean_f),
                    sd = rep(means_all$bb_sd,3),
-                   phase = c(rep("phase_d",5),rep("phase_e",5),rep("phase_f",5)))
+                   phase = c(rep("phase_d",6),rep("phase_e",6),rep("phase_f",6)))
 test %>% 
   ggplot(aes(x = mean, y = platform, color = platform)) +
   geom_point(size = 3) +
@@ -562,4 +562,4 @@ test %>%
   theme_light() +
   xlab("Deviation: Predicted - Observed") +
   ylab("Platform")
-ggsave("out/model_plots/method_deviations_from_obs_mean_only.png",width = 10,height=6)
+ggsave("out/model_plots/method_deviations_from_obs_mean_only.png",width = 12,height=8)
