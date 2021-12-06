@@ -37,10 +37,35 @@ for(file in files_planetscope){
     red <- raster::extract(tmp_stack[[3]], single_tree_sf, na.rm = T)[[1]]
     nir <- raster::extract(tmp_stack[[4]], single_tree_sf, na.rm = T)[[1]]
     
+    red <- crop(tmp_stack[[3]], single_tree_sf, na.rm = T)[[1]]
+    nir <- crop(tmp_stack[[4]], single_tree_sf, na.rm = T)[[1]]
+    
+    
     #calculate NDVI = (nir-red)/(nir+red)
     ndvi <- (nir-red)/(nir+red)
+    ndvi1 <- ndvi
+    library(RColorBrewer)
+    test <- stack(test, ndvi)
     
-    #create output data frame
+    cuts=seq(0,1,0.05) #set breaks
+    colors <- colorRampPalette(brewer.pal(11, "RdYlGn"))(21)
+    
+    plot(test[[3]]) #plot with defined breaks
+    
+    
+    library(rasterVis)
+    
+    ## A raster with values between 0.15 and 0.40
+    r <- raster(matrix(runif(400, min = 0.15, max = 0.4), ncol = 20))
+    
+    ## Set up color gradient with 100 values between 0.0 and 1.0
+    breaks <- seq(0, 1, by = 0.01)
+    cols <- colorRampPalette(c("red", "yellow", "lightgreen"))(length(breaks) - 1)
+    
+    ## Use `at` and `col.regions` arguments to set the color scheme
+    levelplot(ndvi, at = breaks, col.regions = cols)
+    
+      #create output data frame
     ndvi_all <- rbind(ndvi_all, data.frame(tree_id=rep(trees$tree_id[i], length(ndvi)),
                                            date=rep(as.Date(substr(file, 1, 8), "%Y%m%d"), length(ndvi)),
                                            ndvi = ndvi))

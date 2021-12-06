@@ -128,21 +128,7 @@ model_fitting_out_mean %>%
 #Welch-Anova(s) to test, if per-platform estimated values differ from observed values
 welch_anova <- NULL
 for(platform in unique(model_fitting_out_mean$platform)){
-  # tmp_df_all_d <- data.frame(values = c(model_fitting_out_all$SOS[model_fitting_out_all$platform==platform],
-  #                                       model_fitting_out_all$SOS_phase_d[model_fitting_out_all$platform==platform]),
-  #                            estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,])),
-  #                                                   rep(as.factor("observed"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]))))
-  # 
-  # tmp_df_all_e <- data.frame(values = c(model_fitting_out_all$SOS[model_fitting_out_all$platform==platform],
-  #                                       model_fitting_out_all$SOS_phase_e[model_fitting_out_all$platform==platform]),
-  #                            estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,])),
-  #                                                   rep(as.factor("observed"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]))))
-  # 
-  # tmp_df_all_f <- data.frame(values = c(model_fitting_out_all$SOS[model_fitting_out_all$platform==platform],
-  #                                       model_fitting_out_all$SOS_phase_f[model_fitting_out_all$platform==platform]),
-  #                            estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,])),
-  #                                                   rep(as.factor("observed"), nrow(model_fitting_out_all[model_fitting_out_all$platform==platform,]))))
-  # 
+
   tmp_df_mean_d <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
                                          model_fitting_out_mean$SOS_phase_d[model_fitting_out_mean$platform==platform]),
                               estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
@@ -158,33 +144,7 @@ for(platform in unique(model_fitting_out_mean$platform)){
                               estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
                                                      rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
   
-  # tmp_df_median_d <- data.frame(values = c(model_fitting_out_median$SOS[model_fitting_out_median$platform==platform],
-  #                                        model_fitting_out_median$SOS_phase_d[model_fitting_out_median$platform==platform]),
-  #                             estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,])),
-  #                                                    rep(as.factor("observed"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]))))
-  # 
-  # tmp_df_median_e <- data.frame(values = c(model_fitting_out_median$SOS[model_fitting_out_median$platform==platform],
-  #                                          model_fitting_out_median$SOS_phase_e[model_fitting_out_median$platform==platform]),
-  #                               estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,])),
-  #                                                      rep(as.factor("observed"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]))))
-  # 
-  # tmp_df_median_f <- data.frame(values = c(model_fitting_out_median$SOS[model_fitting_out_median$platform==platform],
-  #                                          model_fitting_out_median$SOS_phase_f[model_fitting_out_median$platform==platform]),
-  #                               estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,])),
-  #                                                      rep(as.factor("observed"), nrow(model_fitting_out_median[model_fitting_out_median$platform==platform,]))))
-  
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "all_values_d",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_all_d, values ~ estimated_observed)$p))
-  #
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "all_values_e",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_all_e, values ~ estimated_observed)$p))
-  # 
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "all_values_f",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_all_f, values ~ estimated_observed)$p))
-  # 
+
   welch_anova <- rbind(welch_anova, data.frame(platform = platform,
                                                mean_median = "mean_d",
                                                p_val = rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$p,
@@ -201,17 +161,6 @@ for(platform in unique(model_fitting_out_mean$platform)){
                                                p_val = rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$p,
                                                f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$statistic)))
   
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "median_d",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_median_d, values ~ estimated_observed)$p))
-  # 
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "median_e",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_median_e, values ~ estimated_observed)$p))
-  # 
-  # welch_anova <- rbind(welch_anova, data.frame(platform = platform,
-  #                                              mean_median = "median_f",
-  #                                              p_val = rstatix::welch_anova_test(tmp_df_median_f, values ~ estimated_observed)$p))
 }
 
 welch_anova$p_val <- format(round(welch_anova$p_val,6), scientific=F)
