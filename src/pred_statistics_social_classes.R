@@ -9,7 +9,6 @@ library(dplyr);library(ggplot2);library(rstatix)
 #load fitted models and manually observed budburst data
 load("out/log_function_models/mean_fitted_models_output.RData")
 load("out/log_function_models/sentinel1_fitted_models_output.RData")
-load("out/log_function_models/budburst_fitted_models_output.RData")
 
 model_fitting_out_mean <- rbind(model_fitting_out_mean,model_fitting_out_sen1)
 rm(model_fitting_out_sen1)
@@ -131,3 +130,4 @@ for (class in 1:4) {
   welch_anova <- rbind(welch_anova, welch_anova_tmp)
   
 }
+rm(lin_performance_tmp);rm(mbe_mae_tmp);rm(model_fitting_out_temp);rm(tmp_df_mean_d);rm(tmp_df_mean_e);rm(tmp_df_mean_f);rm(welch_anova_tmp)
