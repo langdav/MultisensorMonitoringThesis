@@ -51,7 +51,7 @@ classes <- NULL
 mbe_mae <- NULL
 lin_performance <- NULL
 welch_anova <- NULL
-platforms <- c("orthomosaic","planetscope","sentinel1","sentinel2","treetalker")
+platforms <- c("planetscope","treetalker","orthomosaic","sentinel2","sentinel1")
 
 for (class in 1:4) {
   classes <- c(classes,class)
@@ -75,53 +75,94 @@ for (class in 1:4) {
   #perform a simple linear regression between estimated and observed budburst dates and get the rsquared of the model
   lin_performance_tmp <- NULL
   for(platform in platforms){
+    
+    if(is(tryCatch(lm(SOS ~ SOS_phase_d,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]),error=function(e) e, warning=function(w) w),'error')){
+      r_squared_d = NA
+    } else {
+      r_squared_d = format(round(summary(lm(SOS ~ SOS_phase_d,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))$r.squared,3), scientific=F)
+    }
+    
+    if(is(tryCatch(lm(SOS ~ SOS_phase_e,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]),error=function(e) e, warning=function(w) w),'error')){
+      r_squared_e = NA
+    } else {
+      r_squared_e = format(round(summary(lm(SOS ~ SOS_phase_e,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))$r.squared,3), scientific=F)
+    }
+    
+    if(is(tryCatch(lm(SOS ~ SOS_phase_f,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]),error=function(e) e, warning=function(w) w),'error')){
+      r_squared_f = NA
+    } else {
+      r_squared_f = format(round(summary(lm(SOS ~ SOS_phase_f,model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))$r.squared,3), scientific=F)
+    }
+    
     lin_performance_tmp <- rbind(lin_performance_tmp, data.frame(platform = platform,
                                                                  ndvi_mean_median = "mean",
-                                                                 r_squared_d = format(round(summary(lm(SOS ~ SOS_phase_d,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,3), scientific=F),
-                                                                 r_squared_e = format(round(summary(lm(SOS ~ SOS_phase_e,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,3), scientific=F),
-                                                                 r_squared_f = format(round(summary(lm(SOS ~ SOS_phase_f,model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))$r.squared,3), scientific=F)))
+                                                                 r_squared_d = r_squared_d,
+                                                                 r_squared_e = r_squared_e,
+                                                                 r_squared_f = r_squared_f,
+                                                                 value_pairs_d = length(which(is.na(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform]) == F & is.na(model_fitting_out_temp$SOS_phase_d[model_fitting_out_temp$platform==platform]) == F)),
+                                                                 value_pairs_d = length(which(is.na(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform]) == F & is.na(model_fitting_out_temp$SOS_phase_e[model_fitting_out_temp$platform==platform]) == F)),
+                                                                 value_pairs_d = length(which(is.na(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform]) == F & is.na(model_fitting_out_temp$SOS_phase_f[model_fitting_out_temp$platform==platform]) == F))))
   }
   
   lin_performance_tmp$social_classes <- paste0(classes, sep = "", collapse = "")
-  lin_performance_tmp <- lin_performance_tmp[,c(6,1:5)]
+  lin_performance_tmp <- lin_performance_tmp[,c(9,1:8)]
   lin_performance <- rbind(lin_performance, lin_performance_tmp)
   
   #Welch-Anova(s) to test, if per-platform estimated values differ from observed values
   welch_anova_tmp <- NULL
   for(platform in platforms){
     
-    tmp_df_mean_d <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
-                                           model_fitting_out_mean$SOS_phase_d[model_fitting_out_mean$platform==platform]),
-                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
-                                                       rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
+    tmp_df_mean_d <- data.frame(values = c(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform],
+                                           model_fitting_out_temp$SOS_phase_d[model_fitting_out_temp$platform==platform]),
+                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,])),
+                                                       rep(as.factor("observed"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))))
     
-    tmp_df_mean_e <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
-                                           model_fitting_out_mean$SOS_phase_e[model_fitting_out_mean$platform==platform]),
-                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
-                                                       rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
+    tmp_df_mean_e <- data.frame(values = c(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform],
+                                           model_fitting_out_temp$SOS_phase_e[model_fitting_out_temp$platform==platform]),
+                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,])),
+                                                       rep(as.factor("observed"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))))
     
-    tmp_df_mean_f <- data.frame(values = c(model_fitting_out_mean$SOS[model_fitting_out_mean$platform==platform],
-                                           model_fitting_out_mean$SOS_phase_f[model_fitting_out_mean$platform==platform]),
-                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,])),
-                                                       rep(as.factor("observed"), nrow(model_fitting_out_mean[model_fitting_out_mean$platform==platform,]))))
-    
-    
-    welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
-                                                         mean_median = "mean_d",
-                                                         p_val = rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$p,
-                                                         f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$statistic)))
+    tmp_df_mean_f <- data.frame(values = c(model_fitting_out_temp$SOS[model_fitting_out_temp$platform==platform],
+                                           model_fitting_out_temp$SOS_phase_f[model_fitting_out_temp$platform==platform]),
+                                estimated_observed = c(rep(as.factor("estimated"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,])),
+                                                       rep(as.factor("observed"), nrow(model_fitting_out_temp[model_fitting_out_temp$platform==platform,]))))
     
     
-    welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
-                                                         mean_median = "mean_e",
-                                                         p_val = rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$p,
-                                                         f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$statistic)))
+    if(!is(tryCatch(rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed),error=function(e) e, warning=function(w) w),'error')){
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_d",
+                                                           p_val = rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$p,
+                                                           f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_d, values ~ estimated_observed)$statistic)))
+    } else {
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_d",
+                                                           p_val = NA,
+                                                           f = NA))
+    }
     
-    welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
-                                                         mean_median = "mean_f",
-                                                         p_val = rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$p,
-                                                         f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$statistic)))
+    if(!is(tryCatch(rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed),error=function(e) e, warning=function(w) w),'error')){
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_e",
+                                                           p_val = rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$p,
+                                                           f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_e, values ~ estimated_observed)$statistic)))
+    } else {
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_e",
+                                                           p_val = NA,
+                                                           f = NA))
+    }
     
+    if(!is(tryCatch(rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed),error=function(e) e, warning=function(w) w),'error')){
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_f",
+                                                           p_val = rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$p,
+                                                           f = as.numeric(rstatix::welch_anova_test(tmp_df_mean_f, values ~ estimated_observed)$statistic)))
+    } else {
+      welch_anova_tmp <- rbind(welch_anova_tmp, data.frame(platform = platform,
+                                                           mean_median = "mean_f",
+                                                           p_val = NA,
+                                                           f = NA))
+    }
   }
   
   welch_anova_tmp$p_val <- format(round(welch_anova_tmp$p_val,6), scientific=F)
@@ -131,3 +172,6 @@ for (class in 1:4) {
   
 }
 rm(lin_performance_tmp);rm(mbe_mae_tmp);rm(model_fitting_out_temp);rm(tmp_df_mean_d);rm(tmp_df_mean_e);rm(tmp_df_mean_f);rm(welch_anova_tmp)
+
+
+
